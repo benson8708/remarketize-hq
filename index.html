@@ -238,6 +238,7 @@ tr:hover td{background:rgba(255,255,255,.02)}
 <script>
 const SURL='https://ikvwrktzczkdhurpdsrp.supabase.co';
 const AKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlrdndya3R6Y3prZGh1cnBkc3JwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyODQwMDksImV4cCI6MjA4Nzg2MDAwOX0.OXx58Pwew--rAdwwVwf6EWEkMHIaUITXehItNMyAqYo';
+const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlrdndya3R6Y3prZGh1cnBkc3JwIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MjI4NDAwOSwiZXhwIjoyMDg3ODYwMDA5fQ.0JjlzF2v2N6lKo56hiv_x_uUDSC8pQ2VOGCwOvtqrC8';
 const sb=supabase.createClient(SURL,AKEY);
 const MIKE='benson8708@gmail.com';
 let CUR_USER=null,LEAD=null,DEMO=null,hqTimer=null,hqPage='overview',isSignup=false;
@@ -295,11 +296,14 @@ async function doSignOut(){
 }
 
 // ── DATA ──
-async function q(table,params=''){
-  const r=await fetch(`${SURL}/rest/v1/${table}?${params}`,{headers:{apikey:AKEY,Authorization:`Bearer ${AKEY}`,Prefer:'count=exact','Content-Range':'*'}});
+async function q(table,params='',useSvc=false){
+  const key=useSvc?SKEY:AKEY;
+  const r=await fetch(`${SURL}/rest/v1/${table}?${params}`,{headers:{apikey:key,Authorization:`Bearer ${key}`,Prefer:'count=exact','Content-Range':'*'}});
   const tot=parseInt(r.headers.get('content-range')?.split('/')[1]||'0');
   const data=await r.json();return{data:Array.isArray(data)?data:[],total:tot};
 }
+// HQ always uses service key for full data access
+async function hq(table,params=''){return q(table,params,true);}
 function ta(ts){if(!ts)return'—';const d=(Date.now()-new Date(ts))/1000;if(d<60)return'just now';if(d<3600)return Math.round(d/60)+'m ago';if(d<86400)return Math.round(d/3600)+'h ago';return Math.round(d/86400)+'d ago';}
 function fd(ts){return ts?new Date(ts).toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}):'—';}
 function sbadge(s){const m={new:'gray',scraping:'yellow',scraped:'yellow',brand_synthesized:'blue',demo_building:'blue',demo_built:'blue',qa_failed:'red',qa_passed:'teal',emailed:'purple',follow_up_1:'purple',follow_up_2:'purple',replied:'emerald',won:'green',lost:'gray'};return`<span class="badge b-${m[s]||'gray'}">${(s||'').replace(/_/g,' ')}</span>`;}
@@ -321,7 +325,7 @@ function hqRefresh(){hqNav(hqPage);}
 // ── HQ OVERVIEW ──
 async function hqOverview(){
   document.getElementById('hq-content').innerHTML=`<div class="kpi-row">${Array(5).fill('<div class="kpi kb" style="min-height:80px;opacity:.3;animation:pulse 1.4s infinite"></div>').join('')}</div><div style="display:grid;grid-template-columns:1.3fr 1fr;gap:16px"><div style="height:340px;background:var(--panel);border:1px solid var(--border-dark);border-radius:10px;opacity:.3;animation:pulse 1.4s infinite"></div><div style="height:340px;background:var(--panel);border:1px solid var(--border-dark);border-radius:10px;opacity:.3;animation:pulse 1.4s infinite"></div></div>`;
-  const [{data:all},{data:demos},{data:recent}]=await Promise.all([q('leads','select=id,status,contact_email,niche'),q('lead_demos','select=lead_id,demo_url,screenshot_url,created_at'),q('leads','select=id,business_name,niche,city,state,status,contact_email,created_at&order=created_at.desc&limit=12')]);
+  const [{data:all},{data:demos},{data:recent}]=await Promise.all([hq('leads','select=id,status,contact_email,niche'),hq('lead_demos','select=lead_id,demo_url,screenshot_url,created_at'),hq('leads','select=id,business_name,niche,city,state,status,contact_email,created_at&order=created_at.desc&limit=12')]);
   const total=all.length,demoBuilt=all.filter(l=>DEMO_S.includes(l.status)).length,emailed=all.filter(l=>EMAILED_S.includes(l.status)).length,won=all.filter(l=>l.status==='won').length;
   const counts={};S_ORDER.forEach(s=>counts[s]=0);all.forEach(l=>{if(counts[l.status]!==undefined)counts[l.status]++;});
   const maxC=Math.max(...Object.values(counts),1);
@@ -334,10 +338,10 @@ async function hqOverview(){
 
 // ── HQ AGENTS ──
 async function hqAgents(){
-  const [{data:leads},{data:profiles},{data:demos},{data:emailed}]=await Promise.all([q('leads','select=created_at&order=created_at.desc&limit=1'),q('lead_brand_profiles','select=created_at&order=created_at.desc&limit=1'),q('lead_demos','select=created_at&order=created_at.desc&limit=1'),q('leads','select=created_at&status=eq.emailed&order=created_at.desc&limit=1')]);
+  const [{data:leads},{data:profiles},{data:demos},{data:emailed}]=await Promise.all([hq('leads','select=created_at&order=created_at.desc&limit=1'),hq('lead_brand_profiles','select=created_at&order=created_at.desc&limit=1'),hq('lead_demos','select=created_at&order=created_at.desc&limit=1'),hq('leads','select=created_at&status=eq.emailed&order=created_at.desc&limit=1')]);
   const agents=[{emoji:'🔍',name:'Scout',role:'Lead Finder',desc:'Finds qualified leads from Google Maps daily',last:leads.data?.[0]?.created_at},{emoji:'🌾',name:'Harvest',role:'Web Scraper',desc:'Scrapes website assets, emails, brand colors',last:leads.data?.[0]?.created_at},{emoji:'🎨',name:'Prism',role:'Brand Synthesizer',desc:'Analyzes brands, generates copy and profiles',last:profiles.data?.[0]?.created_at},{emoji:'🔨',name:'Forge',role:'Demo Builder',desc:'Builds niche demo sites and deploys them live',last:demos.data?.[0]?.created_at},{emoji:'🛡️',name:'Sentinel',role:'QA Agent',desc:'Scores demos for quality and mobile compliance',last:demos.data?.[0]?.created_at},{emoji:'📸',name:'Screenshot',role:'Capture Bot',desc:'Takes Playwright screenshots for email embeds',last:demos.data?.[0]?.created_at},{emoji:'📬',name:'Mercury',role:'Outreach Agent',desc:'Sends personalized emails with demo screenshots',last:emailed.data?.[0]?.created_at},{emoji:'🔥',name:'Warm Domains',role:'Domain Warmer',desc:'Sends warmup emails to build sender reputation',last:new Date().toISOString()}];
   const cards=agents.map(a=>{const recent=a.last&&(Date.now()-new Date(a.last))/1000<7200;const sc=a.last?(recent?'g':'y'):'x';return`<div class="ag-card"><div class="ag-top"><div style="display:flex;align-items:center;gap:7px"><span style="font-size:1.1rem">${a.emoji}</span><span class="ag-name">${a.name}</span></div><div style="display:flex;align-items:center;gap:5px"><div class="sdot ${sc}"></div><span style="font-size:.62rem;color:var(--text3)">${a.last?(recent?'Active':'Idle'):'Standby'}</span></div></div><div class="ag-role">${a.role}</div><div class="ag-desc">${a.desc}</div><div class="ag-last">Last: ${ta(a.last)}</div></div>`;}).join('');
-  const {data:recent30}=await q('leads','select=id,business_name,niche,city,state,status,created_at&order=created_at.desc&limit=30');
+  const {data:recent30}=await hq('leads','select=id,business_name,niche,city,state,status,created_at&order=created_at.desc&limit=30');
   const rows=recent30.map(l=>`<tr><td class="td-m">${l.business_name||'—'}</td><td>${nbadge(l.niche)}</td><td>${l.city||''}${l.state?', '+l.state:''}</td><td>${sbadge(l.status)}</td><td style="font-family:'JetBrains Mono',monospace;font-size:.68rem">${fd(l.created_at)}</td></tr>`).join('');
   document.getElementById('hq-content').innerHTML=`<div class="hpanel"><div class="hpanel-hdr"><span class="hpanel-title">🤖 Agent Status</span></div><div class="agent-grid">${cards}</div></div><div class="hpanel"><div class="hpanel-hdr"><span class="hpanel-title">📋 Recent Lead Activity</span></div><div class="twrap"><table><thead><tr><th>Business</th><th>Niche</th><th>Location</th><th>Status</th><th>Added</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
   hqTimer=setInterval(hqAgents,60000);
@@ -345,7 +349,7 @@ async function hqAgents(){
 
 // ── HQ PIPELINE ──
 async function hqPipeline(){
-  const {data:all}=await q('leads','select=id,status,niche');
+  const {data:all}=await hq('leads','select=id,status,niche');
   const counts={};S_ORDER.forEach(s=>counts[s]=0);all.forEach(l=>{if(counts[l.status]!==undefined)counts[l.status]++;});
   const maxC=Math.max(...Object.values(counts),1);
   const niches=['plumbing','landscaping','house_cleaning'];
@@ -363,10 +367,10 @@ async function loadLTbl(){
   let p=`select=id,business_name,niche,city,state,contact_email,status,google_rating,review_count,created_at&order=created_at.desc&limit=${PER}&offset=${lPage*PER}`;
   if(lNiche)p+=`&niche=eq.${lNiche}`;if(lStatus)p+=`&status=eq.${lStatus}`;
   if(lSearch)p+=`&or=(business_name.ilike.*${encodeURIComponent(lSearch)}*,city.ilike.*${encodeURIComponent(lSearch)}*)`;
-  const r=await fetch(`${SURL}/rest/v1/leads?${p}`,{headers:{apikey:AKEY,Authorization:`Bearer ${AKEY}`,Prefer:'count=exact','Content-Range':'*'}});
+  const r=await fetch(`${SURL}/rest/v1/leads?${p}`,{headers:{apikey:SKEY,Authorization:`Bearer ${SKEY}`,Prefer:'count=exact','Content-Range':'*'}});
   const tot=parseInt(r.headers.get('content-range')?.split('/')[1]||'0');
   const leads=await r.json();
-  const {data:demos}=await q('lead_demos','select=lead_id,demo_url,screenshot_url');
+  const {data:demos}=await hq('lead_demos','select=lead_id,demo_url,screenshot_url');
   demos.forEach(d=>{if(!dCache[d.lead_id])dCache[d.lead_id]=d;});
   const tp=Math.ceil(tot/PER);
   const rows=(Array.isArray(leads)?leads:[]).map(l=>{const d=dCache[l.id];return`<tr><td class="td-m">${l.business_name||'—'}</td><td>${nbadge(l.niche)}</td><td>${l.city||''}${l.state?', '+l.state:''}</td><td>${l.google_rating?'⭐ '+l.google_rating:'—'}</td><td>${l.contact_email?`<span class="badge b-green">✓</span>`:`<span class="badge b-gray">—</span>`}</td><td>${sbadge(l.status)}</td><td>${d?`<a href="${d.demo_url}" target="_blank" class="td-lnk">view →</a>`:'—'}</td><td style="font-family:'JetBrains Mono',monospace;font-size:.65rem">${ta(l.created_at)}</td></tr>`;}).join('')||`<tr><td colspan="8"><div class="hq-empty">No leads</div></td></tr>`;
@@ -379,7 +383,7 @@ function lNCh(v){lNiche=v;lPage=0;loadLTbl();}function lStCh(v){lStatus=v;lPage=
 // ── HQ OUTREACH ──
 async function hqOutreach(){
   const ins=EMAILED_S.map(s=>`status.eq.${s}`).join(',');
-  const [{data:leads},{data:demos}]=await Promise.all([q('leads',`select=id,business_name,niche,city,state,contact_email,status,created_at&or=(${ins})&order=created_at.desc&limit=150`),q('lead_demos','select=lead_id,demo_url,screenshot_url')]);
+  const [{data:leads},{data:demos}]=await Promise.all([hq('leads',`select=id,business_name,niche,city,state,contact_email,status,created_at&or=(${ins})&order=created_at.desc&limit=150`),hq('lead_demos','select=lead_id,demo_url,screenshot_url')]);
   const dm={};demos.forEach(d=>{if(!dm[d.lead_id])dm[d.lead_id]=d;});
   const rows=leads.map(l=>{const d=dm[l.id];return`<tr><td class="td-m">${l.business_name||'—'}</td><td>${nbadge(l.niche)}</td><td>${l.city||''}${l.state?', '+l.state:''}</td><td style="font-family:'JetBrains Mono',monospace;font-size:.68rem">${l.contact_email||'—'}</td><td>${sbadge(l.status)}</td><td>${d?`<a href="${d.demo_url}" target="_blank" class="td-lnk">view →</a>`:'—'}</td><td>${d?.screenshot_url?`<img src="${d.screenshot_url}" style="width:60px;height:38px;object-fit:cover;border-radius:4px;border:1px solid var(--border-dark)" loading="lazy">`:'—'}</td></tr>`;}).join('')||`<tr><td colspan="7"><div class="hq-empty">None yet</div></td></tr>`;
   document.getElementById('hq-content').innerHTML=`<div class="hpanel"><div class="hpanel-hdr"><span class="hpanel-title">📬 Outreach Log</span><span class="hpanel-badge">TEST MODE → benson8708@gmail.com</span></div><div class="twrap"><table><thead><tr><th>Business</th><th>Niche</th><th>Location</th><th>Real Email</th><th>Status</th><th>Demo</th><th>Screenshot</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
@@ -397,7 +401,7 @@ async function hqDomains(){
 
 // ── HQ REVENUE ──
 async function hqRevenue(){
-  const {data:all}=await q('leads','select=status');
+  const {data:all}=await hq('leads','select=status');
   const won=all.filter(l=>l.status==='won').length,mrr=won*99;
   document.getElementById('hq-content').innerHTML=`<div class="kpi-row" style="grid-template-columns:repeat(4,1fr)"><div class="kpi kg"><div class="kpi-lbl">MRR</div><div class="kpi-val">$${mrr.toLocaleString()}</div><div class="kpi-sub">Monthly recurring</div></div><div class="kpi kg"><div class="kpi-lbl">Customers</div><div class="kpi-val">${won}</div><div class="kpi-sub">Active</div></div><div class="kpi ky"><div class="kpi-lbl">ARR</div><div class="kpi-val">$${(mrr*12).toLocaleString()}</div><div class="kpi-sub">Annual run rate</div></div><div class="kpi" style="--c:var(--red)"><div class="kpi-lbl">Blockers</div><div class="kpi-val" style="color:var(--red)">2</div><div class="kpi-sub">EIN + Stripe</div></div></div><div class="hpanel"><div class="hpanel-hdr"><span class="hpanel-title">💰 Revenue Blockers</span></div><div style="padding:16px;display:flex;flex-direction:column;gap:12px"><div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:8px;padding:14px"><div style="font-size:.82rem;font-weight:700;color:var(--red);margin-bottom:5px">🚫 EIN Not Applied</div><div style="font-size:.75rem;color:var(--text2);line-height:1.7">Apply at irs.gov — 5 min, need your SSN. Required before bank account and Stripe.</div></div><div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:8px;padding:14px"><div style="font-size:.82rem;font-weight:700;color:var(--red);margin-bottom:5px">🚫 Stripe Not Verified</div><div style="font-size:.75rem;color:var(--text2);line-height:1.7">Needs SSN + personal info. Can add EIN after setup. Products: Setup $199 · Monthly $99 · Revision $50.</div></div><div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:8px;padding:14px"><div style="font-size:.82rem;font-weight:700;color:var(--yellow);margin-bottom:5px">⏳ Real Outreach Locked Until March 15</div><div style="font-size:.75rem;color:var(--text2);line-height:1.7">All 127+ emails sent in test mode. Real cold outreach starts when domains finish warming.</div></div></div></div>`;
 }
