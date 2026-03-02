@@ -1,0 +1,437 @@
+<!--cb:1772466046625--><!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Remarketize</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<style>
+:root{--bg-dark:#030712;--panel:#0d1117;--panel2:#161b22;--border-dark:#21262d;--accent:#38bdf8;--green:#22c55e;--yellow:#f59e0b;--red:#ef4444;--purple:#a855f7;--text:#e6edf3;--text2:#8b949e;--text3:#484f58}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:'Inter',sans-serif}
+a{color:inherit;text-decoration:none}button{font-family:inherit;cursor:pointer}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:var(--panel)}::-webkit-scrollbar-thumb{background:#30363d;border-radius:3px}
+
+/* ── LOGIN ── */
+#login-wrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(160deg,#0f172a 0%,#1e3a5f 50%,#0f172a 100%);z-index:9999}
+#login-wrap.gone{display:none}
+.lbox{background:#1e293b;border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:44px 40px;width:100%;max-width:400px;box-shadow:0 32px 80px rgba(0,0,0,.5)}
+.llogo{text-align:center;margin-bottom:32px}
+.llogo-icon{font-size:2.8rem}
+.llogo h1{font-size:1.5rem;font-weight:800;color:#fff;margin-top:8px}
+.llogo p{color:#64748b;font-size:.88rem;margin-top:5px}
+.fg{margin-bottom:18px}
+.fg label{display:block;font-size:.72rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px}
+.fg input{width:100%;background:#0f172a;border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:13px 15px;color:#fff;font-size:.92rem;font-family:'Inter',sans-serif;outline:none;transition:border-color .2s}
+.fg input:focus{border-color:#38bdf8}
+.lbtn{width:100%;background:#38bdf8;color:#0f172a;font-weight:800;font-size:.95rem;padding:14px;border-radius:10px;border:none;margin-top:6px;transition:opacity .2s}
+.lbtn:hover{opacity:.9}
+.lbtn:disabled{opacity:.5;cursor:not-allowed}
+.lerr{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.25);color:#fca5a5;padding:11px 13px;border-radius:8px;font-size:.82rem;margin-bottom:14px;display:none}
+.lerr.show{display:block}
+.lhint{text-align:center;font-size:.8rem;color:#475569;margin-top:14px}
+.lhint a{color:#38bdf8;cursor:pointer;font-weight:600}
+
+/* ══════════ HQ (MIKE) ══════════ */
+#hq{display:none;height:100vh;background:var(--bg-dark);color:var(--text)}
+#hq.show{display:flex}
+.sb{width:220px;background:var(--panel);border-right:1px solid var(--border-dark);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
+.sb-logo{padding:20px 16px 14px;border-bottom:1px solid var(--border-dark)}
+.sb-logo-text{font-size:.85rem;font-weight:700;color:var(--accent);letter-spacing:.05em;text-transform:uppercase}
+.sb-sub{font-size:.62rem;color:var(--text3);margin-top:2px;letter-spacing:.06em}
+.sb-nav{padding:12px 8px;flex:1}
+.sb-sect{font-size:.6rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);padding:8px 8px 4px;margin-top:6px}
+.sb-item{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:6px;color:var(--text2);font-size:.83rem;font-weight:500;cursor:pointer;margin-bottom:1px;transition:all .15s}
+.sb-item:hover{background:var(--panel2);color:var(--text)}
+.sb-item.active{background:rgba(56,189,248,.1);color:var(--accent)}
+.sb-item .ico{width:16px;text-align:center}
+.sb-foot{padding:12px 10px;border-top:1px solid var(--border-dark);display:flex;align-items:center;gap:8px}
+.sb-av{width:28px;height:28px;background:linear-gradient(135deg,#38bdf8,#0284c7);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;color:#030712;flex-shrink:0}
+.sb-em{font-size:.68rem;color:var(--text2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sb-out{background:none;border:none;color:var(--text3);font-size:.75rem;padding:3px 6px;border-radius:4px}
+.sb-out:hover{color:var(--red)}
+.hq-main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.hq-top{height:52px;background:var(--panel);border-bottom:1px solid var(--border-dark);display:flex;align-items:center;justify-content:space-between;padding:0 20px;flex-shrink:0}
+.hq-pg-title{font-size:.95rem;font-weight:700}
+.live-pill{display:flex;align-items:center;gap:5px;font-size:.7rem;font-weight:700;color:var(--green);background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.2);padding:3px 10px;border-radius:50px}
+.pulse{width:6px;height:6px;background:var(--green);border-radius:50%;animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.hq-ts{font-size:.72rem;color:var(--text3);font-family:'JetBrains Mono',monospace}
+.btn-sm{padding:5px 12px;border-radius:5px;border:1px solid var(--border-dark);background:var(--panel2);color:var(--text2);font-size:.75rem;font-weight:600;transition:all .15s}
+.btn-sm:hover{border-color:var(--accent);color:var(--accent)}
+.hq-content{flex:1;overflow-y:auto;padding:20px}
+/* HQ sub-components */
+.kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:16px}
+.kpi{background:var(--panel);border:1px solid var(--border-dark);border-radius:10px;padding:16px;position:relative;overflow:hidden}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.kpi.kb::before{background:var(--accent)}.kpi.kg::before{background:var(--green)}.kpi.kp::before{background:var(--purple)}.kpi.ky::before{background:var(--yellow)}
+.kpi-lbl{font-size:.62rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:8px}
+.kpi-val{font-size:1.8rem;font-weight:800;line-height:1;font-family:'JetBrains Mono',monospace}
+.kpi-sub{font-size:.68rem;color:var(--text3);margin-top:5px}
+.hpanel{background:var(--panel);border:1px solid var(--border-dark);border-radius:10px;overflow:hidden;margin-bottom:16px}
+.hpanel-hdr{padding:12px 16px;border-bottom:1px solid var(--border-dark);display:flex;align-items:center;justify-content:space-between}
+.hpanel-title{font-size:.82rem;font-weight:700;display:flex;align-items:center;gap:7px}
+.hpanel-badge{font-size:.65rem;background:var(--panel2);border:1px solid var(--border-dark);color:var(--text2);padding:2px 7px;border-radius:3px;font-family:'JetBrains Mono',monospace}
+.pipeline-wrap{padding:12px 16px 16px}
+.ps-row{display:grid;grid-template-columns:130px 1fr 40px;align-items:center;gap:10px;margin-bottom:6px}
+.ps-lbl{font-size:.7rem;color:var(--text2);text-align:right;font-family:'JetBrains Mono',monospace}
+.ps-track{height:10px;background:var(--panel2);border-radius:50px;overflow:hidden}
+.ps-fill{height:100%;border-radius:50px;transition:width .7s}
+.ps-n{font-size:.7rem;font-weight:700;color:var(--text2);text-align:right;font-family:'JetBrains Mono',monospace}
+.act-stream{max-height:320px;overflow-y:auto}
+.a-row{display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid var(--border-dark)}
+.a-row:last-child{border-bottom:none}
+.a-row:hover{background:var(--panel2)}
+.a-thumb{width:48px;height:34px;border-radius:4px;object-fit:cover;flex-shrink:0;background:var(--panel2);border:1px solid var(--border-dark)}
+.a-ico{width:48px;height:34px;border-radius:4px;flex-shrink:0;background:var(--panel2);display:flex;align-items:center;justify-content:center;border:1px solid var(--border-dark)}
+.a-name{font-size:.8rem;font-weight:600}
+.a-meta{font-size:.68rem;color:var(--text3);display:flex;gap:8px;margin-top:2px;flex-wrap:wrap}
+.a-time{font-size:.65rem;color:var(--text3);flex-shrink:0;font-family:'JetBrains Mono',monospace;margin-left:auto}
+.agent-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;padding:14px}
+.ag-card{background:var(--panel2);border:1px solid var(--border-dark);border-radius:8px;padding:14px}
+.ag-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.ag-name{font-size:.83rem;font-weight:700}
+.sdot{width:8px;height:8px;border-radius:50%}
+.sdot.g{background:var(--green);box-shadow:0 0 6px rgba(34,197,94,.5)}.sdot.y{background:var(--yellow)}.sdot.x{background:var(--text3)}
+.ag-role{font-size:.68rem;color:var(--text3);margin-bottom:6px}
+.ag-desc{font-size:.67rem;color:var(--text3);line-height:1.5;margin-bottom:8px}
+.ag-last{font-size:.67rem;color:var(--text3);font-family:'JetBrains Mono',monospace}
+/* tables */
+.twrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th{font-size:.62rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);padding:9px 14px;text-align:left;background:var(--panel2);border-bottom:1px solid var(--border-dark);white-space:nowrap}
+td{padding:9px 14px;font-size:.8rem;color:var(--text2);border-bottom:1px solid var(--border-dark);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.02)}
+.td-m{font-weight:600;color:var(--text);font-size:.82rem}
+.td-lnk{color:var(--accent);font-weight:600}.td-lnk:hover{text-decoration:underline}
+.badge{display:inline-flex;align-items:center;padding:2px 7px;border-radius:3px;font-size:.65rem;font-weight:700;white-space:nowrap;font-family:'JetBrains Mono',monospace}
+.b-gray{background:rgba(72,79,88,.3);color:#8b949e;border:1px solid rgba(72,79,88,.4)}
+.b-blue{background:rgba(56,189,248,.1);color:#38bdf8;border:1px solid rgba(56,189,248,.2)}
+.b-green{background:rgba(34,197,94,.1);color:#22c55e;border:1px solid rgba(34,197,94,.2)}
+.b-yellow{background:rgba(245,158,11,.1);color:#f59e0b;border:1px solid rgba(245,158,11,.2)}
+.b-red{background:rgba(239,68,68,.1);color:#ef4444;border:1px solid rgba(239,68,68,.2)}
+.b-purple{background:rgba(168,85,247,.1);color:#a855f7;border:1px solid rgba(168,85,247,.2)}
+.b-teal{background:rgba(20,184,166,.1);color:#14b8a6;border:1px solid rgba(20,184,166,.2)}
+.b-emerald{background:rgba(16,185,129,.1);color:#10b981;border:1px solid rgba(16,185,129,.2)}
+/* search */
+.sbar{display:flex;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border-dark)}
+.sinput{flex:1;background:var(--panel2);border:1px solid var(--border-dark);border-radius:6px;padding:7px 12px;color:var(--text);font-size:.8rem;font-family:'Inter',sans-serif;outline:none}
+.sinput:focus{border-color:var(--accent)}
+.sinput::placeholder{color:var(--text3)}
+.fsel{background:var(--panel2);border:1px solid var(--border-dark);border-radius:6px;padding:7px 10px;color:var(--text2);font-size:.75rem;outline:none}
+.pgr{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-top:1px solid var(--border-dark)}
+.pgr-info{font-size:.7rem;color:var(--text3);font-family:'JetBrains Mono',monospace}
+.pgr-btns{display:flex;gap:4px}
+.pg-btn{padding:4px 10px;border-radius:4px;border:1px solid var(--border-dark);background:var(--panel2);color:var(--text2);font-size:.72rem;font-weight:600}
+.pg-btn:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
+.pg-btn:disabled{opacity:.35;cursor:not-allowed}
+.pg-btn.cur{background:var(--accent);border-color:var(--accent);color:var(--bg-dark)}
+.warmup-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:14px}
+.wm-card{background:var(--panel2);border:1px solid var(--border-dark);border-radius:8px;padding:14px}
+.wm-dom{font-size:.75rem;font-weight:700;font-family:'JetBrains Mono',monospace;margin-bottom:6px}
+.wm-bar{height:6px;background:var(--bg-dark);border-radius:50px;overflow:hidden;margin-bottom:6px}
+.wm-fill{height:100%;border-radius:50px;background:linear-gradient(90deg,var(--yellow),var(--green))}
+.wm-st{display:flex;justify-content:space-between;font-size:.65rem;color:var(--text3)}
+.hq-empty{text-align:center;padding:40px;color:var(--text3);font-size:.8rem}
+
+/* ══════════ CUSTOMER ══════════ */
+#cust{display:none;min-height:100vh;background:#f8fafc;color:#0f172a;flex-direction:column}
+#cust.show{display:flex}
+.c-header{background:#fff;border-bottom:1px solid #e2e8f0;padding:0 5%;height:64px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.c-brand{font-size:1.1rem;font-weight:800;color:#0ea5e9}
+.c-user-pill{background:#f0f9ff;border:1px solid #bae6fd;color:#0284c7;font-size:.78rem;font-weight:600;padding:6px 14px;border-radius:50px}
+.c-out{background:none;border:none;color:#94a3b8;font-size:.8rem;font-weight:600;cursor:pointer}
+.c-out:hover{color:#ef4444}
+.c-tabs{background:#fff;border-bottom:1px solid #e2e8f0;padding:0 5%;display:flex;gap:4px}
+.c-tab{padding:14px 16px;font-size:.85rem;font-weight:600;color:#94a3b8;border-bottom:2px solid transparent;cursor:pointer}
+.c-tab:hover{color:#475569}
+.c-tab.active{color:#0ea5e9;border-bottom-color:#0ea5e9}
+.c-body{max-width:860px;margin:0 auto;padding:32px 5%;width:100%}
+.c-card{background:#fff;border-radius:14px;box-shadow:0 1px 3px rgba(0,0,0,.08),0 4px 16px rgba(0,0,0,.06);overflow:hidden;margin-bottom:20px}
+.c-card-hdr{padding:18px 22px 14px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between}
+.c-card-title{font-size:.95rem;font-weight:700}
+.c-card-body{padding:20px 22px}
+.c-btn{background:#0ea5e9;color:#fff;font-weight:700;font-size:.85rem;padding:9px 18px;border-radius:8px;border:none;cursor:pointer}
+.c-btn:hover{background:#0284c7}
+.c-welcome{background:linear-gradient(135deg,#0ea5e9,#0284c7);border-radius:14px;padding:28px 24px;margin-bottom:20px;color:#fff}
+.c-welcome h2{font-size:1.2rem;font-weight:800;margin-bottom:6px}
+.c-welcome p{font-size:.88rem;opacity:.9;line-height:1.6}
+.c-empty{text-align:center;padding:48px 20px;color:#94a3b8}
+.c-empty-ico{font-size:2.5rem;margin-bottom:10px;opacity:.4}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-wrap">
+  <div class="lbox">
+    <div class="llogo">
+      <div class="llogo-icon">✨</div>
+      <h1>Remarketize</h1>
+      <p id="lsub">Sign in to your account</p>
+    </div>
+    <div class="lerr" id="lerr"></div>
+    <div class="fg"><label>Email</label><input type="email" id="lemail" placeholder="your@email.com" autocomplete="email"></div>
+    <div class="fg"><label>Password</label><input type="password" id="lpass" placeholder="••••••••" autocomplete="current-password"></div>
+    <button class="lbtn" id="lbtn" onclick="doLogin()">Sign In →</button>
+    <div class="lhint">No account? <a onclick="toggleMode()">Sign up</a></div>
+  </div>
+</div>
+
+<!-- HQ (MIKE ONLY) -->
+<div id="hq">
+  <aside class="sb">
+    <div class="sb-logo"><div class="sb-logo-text">🏛️ Remarketize</div><div class="sb-sub">HQ COMMAND CENTER</div></div>
+    <nav class="sb-nav">
+      <div class="sb-sect">Operations</div>
+      <div class="sb-item active" onclick="hqNav('overview')" id="hn-overview"><span class="ico">📡</span> Overview</div>
+      <div class="sb-item" onclick="hqNav('agents')" id="hn-agents"><span class="ico">🤖</span> Agents</div>
+      <div class="sb-item" onclick="hqNav('pipeline')" id="hn-pipeline"><span class="ico">⚡</span> Pipeline</div>
+      <div class="sb-item" onclick="hqNav('leads')" id="hn-leads"><span class="ico">🔍</span> Leads</div>
+      <div class="sb-sect">Business</div>
+      <div class="sb-item" onclick="hqNav('outreach')" id="hn-outreach"><span class="ico">📬</span> Outreach</div>
+      <div class="sb-item" onclick="hqNav('domains')" id="hn-domains"><span class="ico">🌐</span> Domains</div>
+      <div class="sb-item" onclick="hqNav('revenue')" id="hn-revenue"><span class="ico">💰</span> Revenue</div>
+    </nav>
+    <div class="sb-foot">
+      <div class="sb-av">M</div>
+      <div class="sb-em">benson8708@gmail.com</div>
+      <button class="sb-out" onclick="doSignOut()">↩</button>
+    </div>
+  </aside>
+  <main class="hq-main">
+    <div class="hq-top">
+      <div style="display:flex;align-items:center;gap:12px">
+        <span class="hq-pg-title" id="hq-title">Overview</span>
+        <div class="live-pill"><div class="pulse"></div>LIVE</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span class="hq-ts" id="hq-ts"></span>
+        <button class="btn-sm" onclick="hqRefresh()">↻ Refresh</button>
+      </div>
+    </div>
+    <div class="hq-content" id="hq-content"><div class="hq-empty">Loading...</div></div>
+  </main>
+</div>
+
+<!-- CUSTOMER PORTAL -->
+<div id="cust">
+  <header class="c-header">
+    <div class="c-brand">✨ Remarketize</div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="c-user-pill" id="c-user-pill"></div>
+      <button class="c-out" onclick="doSignOut()">Sign out</button>
+    </div>
+  </header>
+  <div class="c-tabs">
+    <div class="c-tab active" onclick="custNav('site')" id="ct-site">My Website</div>
+    <div class="c-tab" onclick="custNav('changes')" id="ct-changes">Request Changes</div>
+    <div class="c-tab" onclick="custNav('billing')" id="ct-billing">Billing</div>
+    <div class="c-tab" onclick="custNav('support')" id="ct-support">Support</div>
+  </div>
+  <div class="c-body" id="c-body"><div class="c-empty"><div class="c-empty-ico">⏳</div><p>Loading your account...</p></div></div>
+</div>
+
+<script>
+const SURL='https://ikvwrktzczkdhurpdsrp.supabase.co';
+const AKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlrdndya3R6Y3prZGh1cnBkc3JwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyODQwMDksImV4cCI6MjA4Nzg2MDAwOX0.OXx58Pwew--rAdwwVwf6EWEkMHIaUITXehItNMyAqYo';
+const sb=supabase.createClient(SURL,AKEY);
+const MIKE='benson8708@gmail.com';
+let CUR_USER=null,LEAD=null,DEMO=null,hqTimer=null,hqPage='overview',isSignup=false;
+let lPage=0,lSearch='',lNiche='',lStatus='',dCache={};
+const PER=25;
+const S_ORDER=['new','scraping','scraped','brand_synthesized','demo_building','demo_built','qa_failed','qa_passed','emailed','follow_up_1','follow_up_2','replied','won','lost'];
+const EMAILED_S=['emailed','follow_up_1','follow_up_2','replied','won','lost'];
+const DEMO_S=['demo_built','qa_failed','qa_passed',...EMAILED_S];
+
+// Clock
+setInterval(()=>{const el=document.getElementById('hq-ts');if(el)el.textContent=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'});},1000);
+
+// Auth
+async function init(){
+  const {data:{session}}=await sb.auth.getSession();
+  if(session)enterApp(session.user);
+  document.getElementById('lpass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+  document.getElementById('lemail').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('lpass').focus();});
+}
+function toggleMode(){isSignup=!isSignup;document.getElementById('lsub').textContent=isSignup?'Create your account':'Sign in to your account';document.getElementById('lbtn').textContent=isSignup?'Create Account →':'Sign In →';document.getElementById('lerr').classList.remove('show');}
+async function doLogin(){
+  const email=document.getElementById('lemail').value.trim();
+  const pass=document.getElementById('lpass').value;
+  const btn=document.getElementById('lbtn');const err=document.getElementById('lerr');
+  err.classList.remove('show');btn.disabled=true;btn.textContent=isSignup?'Creating...':'Signing in...';
+  const fn=isSignup?sb.auth.signUp.bind(sb.auth):sb.auth.signInWithPassword.bind(sb.auth);
+  const {data,error}=await fn({email,password:pass});
+  if(error){err.textContent=error.message;err.classList.add('show');btn.disabled=false;btn.textContent=isSignup?'Create Account →':'Sign In →';}
+  else if(data.user)enterApp(data.user);
+}
+async function enterApp(user){
+  CUR_USER=user;
+  document.getElementById('login-wrap').classList.add('gone');
+  if(user.email===MIKE){
+    document.getElementById('hq').classList.add('show');
+    hqNav('overview');
+  } else {
+    document.getElementById('c-user-pill').textContent=user.email;
+    document.getElementById('cust').classList.add('show');
+    // Fetch lead
+    const r=await fetch(`${SURL}/rest/v1/leads?contact_email=eq.${encodeURIComponent(user.email)}&limit=1`,{headers:{apikey:AKEY,Authorization:`Bearer ${AKEY}`}});
+    const rows=await r.json();LEAD=rows[0]||null;
+    if(LEAD){const dr=await fetch(`${SURL}/rest/v1/lead_demos?lead_id=eq.${LEAD.id}&order=created_at.desc&limit=1`,{headers:{apikey:AKEY,Authorization:`Bearer ${AKEY}`}});const d=await dr.json();DEMO=d[0]||null;}
+    custNav('site');
+  }
+}
+async function doSignOut(){
+  await sb.auth.signOut();
+  CUR_USER=null;LEAD=null;DEMO=null;
+  if(hqTimer){clearInterval(hqTimer);hqTimer=null;}
+  document.getElementById('hq').classList.remove('show');
+  document.getElementById('cust').classList.remove('show');
+  document.getElementById('login-wrap').classList.remove('gone');
+  document.getElementById('lbtn').disabled=false;document.getElementById('lbtn').textContent='Sign In →';
+}
+
+// ── DATA ──
+async function q(table,params=''){
+  const r=await fetch(`${SURL}/rest/v1/${table}?${params}`,{headers:{apikey:AKEY,Authorization:`Bearer ${AKEY}`,Prefer:'count=exact','Content-Range':'*'}});
+  const tot=parseInt(r.headers.get('content-range')?.split('/')[1]||'0');
+  const data=await r.json();return{data:Array.isArray(data)?data:[],total:tot};
+}
+function ta(ts){if(!ts)return'—';const d=(Date.now()-new Date(ts))/1000;if(d<60)return'just now';if(d<3600)return Math.round(d/60)+'m ago';if(d<86400)return Math.round(d/3600)+'h ago';return Math.round(d/86400)+'d ago';}
+function fd(ts){return ts?new Date(ts).toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}):'—';}
+function sbadge(s){const m={new:'gray',scraping:'yellow',scraped:'yellow',brand_synthesized:'blue',demo_building:'blue',demo_built:'blue',qa_failed:'red',qa_passed:'teal',emailed:'purple',follow_up_1:'purple',follow_up_2:'purple',replied:'emerald',won:'green',lost:'gray'};return`<span class="badge b-${m[s]||'gray'}">${(s||'').replace(/_/g,' ')}</span>`;}
+function nbadge(n){const m={plumbing:'blue',landscaping:'green',house_cleaning:'teal'};return`<span class="badge b-${m[(n||'').toLowerCase()]||'gray'}">${(n||'').replace(/_/g,' ')}</span>`;}
+function psfill(s){const m={new:'#484f58',scraping:'#f59e0b',scraped:'#f59e0b',brand_synthesized:'#0284c7',demo_building:'#0284c7',demo_built:'#38bdf8',qa_failed:'#ef4444',qa_passed:'#14b8a6',emailed:'#a855f7',follow_up_1:'#a855f7',follow_up_2:'#a855f7',replied:'#10b981',won:'#22c55e',lost:'#374151'};return m[s]||'#484f58';}
+
+// ── HQ NAVIGATION ──
+const HQ_TITLES={overview:'Overview',agents:'Agents',pipeline:'Pipeline',leads:'Leads',outreach:'Outreach',domains:'Domain Warmup',revenue:'Revenue'};
+function hqNav(page){
+  hqPage=page;if(hqTimer){clearInterval(hqTimer);hqTimer=null;}
+  document.querySelectorAll('.sb-item').forEach(e=>e.classList.remove('active'));
+  const el=document.getElementById('hn-'+page);if(el)el.classList.add('active');
+  document.getElementById('hq-title').textContent=HQ_TITLES[page]||page;
+  const fn={overview:hqOverview,agents:hqAgents,pipeline:hqPipeline,leads:hqLeads,outreach:hqOutreach,domains:hqDomains,revenue:hqRevenue};
+  if(fn[page])fn[page]();
+}
+function hqRefresh(){hqNav(hqPage);}
+
+// ── HQ OVERVIEW ──
+async function hqOverview(){
+  document.getElementById('hq-content').innerHTML=`<div class="kpi-row">${Array(5).fill('<div class="kpi kb" style="min-height:80px;opacity:.3;animation:pulse 1.4s infinite"></div>').join('')}</div><div style="display:grid;grid-template-columns:1.3fr 1fr;gap:16px"><div style="height:340px;background:var(--panel);border:1px solid var(--border-dark);border-radius:10px;opacity:.3;animation:pulse 1.4s infinite"></div><div style="height:340px;background:var(--panel);border:1px solid var(--border-dark);border-radius:10px;opacity:.3;animation:pulse 1.4s infinite"></div></div>`;
+  const [{data:all},{data:demos},{data:recent}]=await Promise.all([q('leads','select=id,status,contact_email,niche'),q('lead_demos','select=lead_id,demo_url,screenshot_url,created_at'),q('leads','select=id,business_name,niche,city,state,status,contact_email,created_at&order=created_at.desc&limit=12')]);
+  const total=all.length,demoBuilt=all.filter(l=>DEMO_S.includes(l.status)).length,emailed=all.filter(l=>EMAILED_S.includes(l.status)).length,won=all.filter(l=>l.status==='won').length;
+  const counts={};S_ORDER.forEach(s=>counts[s]=0);all.forEach(l=>{if(counts[l.status]!==undefined)counts[l.status]++;});
+  const maxC=Math.max(...Object.values(counts),1);
+  const dm={};demos.forEach(d=>{if(!dm[d.lead_id])dm[d.lead_id]=d;});
+  const pipeline=S_ORDER.map(s=>{const n=counts[s];const pct=Math.round((n/maxC)*100);return`<div class="ps-row"><span class="ps-lbl">${s.replace(/_/g,' ')}</span><div class="ps-track"><div class="ps-fill" style="width:${pct}%;background:${psfill(s)}"></div></div><span class="ps-n">${n}</span></div>`;}).join('');
+  const arows=recent.map(l=>{const d=dm[l.id];return`<div class="a-row">${d?.screenshot_url?`<img src="${d.screenshot_url}" class="a-thumb" loading="lazy">`:`<div class="a-ico">${l.niche==='plumbing'?'🔧':l.niche==='landscaping'?'🌿':'✨'}</div>`}<div style="flex:1;min-width:0"><div class="a-name">${l.business_name||'Unknown'}</div><div class="a-meta">${nbadge(l.niche)} ${sbadge(l.status)} ${l.city||''}${l.state?', '+l.state:''} ${d?`<a href="${d.demo_url}" target="_blank" class="td-lnk" style="font-size:.65rem">demo →</a>`:''}</div></div><span class="a-time">${ta(l.created_at)}</span></div>`;}).join('')||`<div class="hq-empty">No activity yet</div>`;
+  document.getElementById('hq-content').innerHTML=`<div class="kpi-row"><div class="kpi kb"><div class="kpi-lbl">Total Leads</div><div class="kpi-val">${total}</div><div class="kpi-sub">All niches</div></div><div class="kpi kb"><div class="kpi-lbl">Demos Built</div><div class="kpi-val">${demoBuilt}</div><div class="kpi-sub">Sites live</div></div><div class="kpi kp"><div class="kpi-lbl">Emailed</div><div class="kpi-val">${emailed}</div><div class="kpi-sub">Test mode</div></div><div class="kpi kg"><div class="kpi-lbl">Won</div><div class="kpi-val">${won}</div><div class="kpi-sub">Customers</div></div><div class="kpi ky"><div class="kpi-lbl">MRR</div><div class="kpi-val">$${(won*99).toLocaleString()}</div><div class="kpi-sub">Recurring</div></div></div><div style="display:grid;grid-template-columns:1.3fr 1fr;gap:16px"><div class="hpanel"><div class="hpanel-hdr"><span class="hpanel-title">⚡ Pipeline</span><span class="hpanel-badge">LIVE</span></div><div class="pipeline-wrap">${pipeline}</div></div><div class="hpanel"><div class="hpanel-hdr"><span class="hpanel-title">📡 Activity</span></div><div class="act-stream">${arows}</div></div></div>`;
+  hqTimer=setInterval(hqOverview,30000);
+}
+
+// ── HQ AGENTS ──
+async function hqAgents(){
+  const [{data:leads},{data:profiles},{data:demos},{data:emailed}]=await Promise.all([q('leads','select=created_at&order=created_at.desc&limit=1'),q('lead_brand_profiles','select=created_at&order=created_at.desc&limit=1'),q('lead_demos','select=created_at&order=created_at.desc&limit=1'),q('leads','select=created_at&status=eq.emailed&order=created_at.desc&limit=1')]);
+  const agents=[{emoji:'🔍',name:'Scout',role:'Lead Finder',desc:'Finds qualified leads from Google Maps daily',last:leads.data?.[0]?.created_at},{emoji:'🌾',name:'Harvest',role:'Web Scraper',desc:'Scrapes website assets, emails, brand colors',last:leads.data?.[0]?.created_at},{emoji:'🎨',name:'Prism',role:'Brand Synthesizer',desc:'Analyzes brands, generates copy and profiles',last:profiles.data?.[0]?.created_at},{emoji:'🔨',name:'Forge',role:'Demo Builder',desc:'Builds niche demo sites and deploys them live',last:demos.data?.[0]?.created_at},{emoji:'🛡️',name:'Sentinel',role:'QA Agent',desc:'Scores demos for quality and mobile compliance',last:demos.data?.[0]?.created_at},{emoji:'📸',name:'Screenshot',role:'Capture Bot',desc:'Takes Playwright screenshots for email embeds',last:demos.data?.[0]?.created_at},{emoji:'📬',name:'Mercury',role:'Outreach Agent',desc:'Sends personalized emails with demo screenshots',last:emailed.data?.[0]?.created_at},{emoji:'🔥',name:'Warm Domains',role:'Domain Warmer',desc:'Sends warmup emails to build sender reputation',last:new Date().toISOString()}];
+  const cards=agents.map(a=>{const recent=a.last&&(Date.now()-new Date(a.last))/1000<7200;const sc=a.last?(recent?'g':'y'):'x';return`<div class="ag-card"><div class="ag-top"><div style="display:flex;align-items:center;gap:7px"><span style="font-size:1.1rem">${a.emoji}</span><span class="ag-name">${a.name}</span></div><div style="display:flex;align-items:center;gap:5px"><div class="sdot ${sc}"></div><span style="font-size:.62rem;color:var(--text3)">${a.last?(recent?'Active':'Idle'):'Standby'}</span></div></div><div class="ag-role">${a.role}</div><div class="ag-desc">${a.desc}</div><div class="ag-last">Last: ${ta(a.last)}</div></div>`;}).join('');
+  const {data:recent30}=await q('leads','select=id,business_name,niche,city,state,status,created_at&order=created_at.desc&limit=30');
+  const rows=recent30.map(l=>`<tr><td class="td-m">${l.business_name||'—'}</td><td>${nbadge(l.niche)}</td><td>${l.city||''}${l.state?', '+l.state:''}</td><td>${sbadge(l.status)}</td><td style="font-family:'JetBrains Mono',monospace;font-size:.68rem">${fd(l.created_at)}</td></tr>`).join('');
+  document.getElementById('hq-content').innerHTML=`<div class="hpanel"><div class="hpanel-hdr"><span class="hpanel-title">🤖 Agent Status</span></div><div class="agent-grid">${cards}</div></div><div class="hpanel"><div class="hpanel-hdr"><span class="hpanel-title">📋 Recent Lead Activity</span></div><div class="twrap"><table><thead><tr><th>Business</th><th>Niche</th><th>Location</th><th>Status</th><th>Added</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
+  hqTimer=setInterval(hqAgents,60000);
+}
+
+// ── HQ PIPELINE ──
+async function hqPipeline(){
+  const {data:all}=await q('leads','select=id,status,niche');
+  const counts={};S_ORDER.forEach(s=>counts[s]=0);all.forEach(l=>{if(counts[l.status]!==undefined)counts[l.status]++;});
+  const maxC=Math.max(...Object.values(counts),1);
+  const niches=['plumbing','landscaping','house_cleaning'];
+  const nPanels=niches.map(niche=>{const filt=all.filter(l=>l.niche===niche);const nc={};S_ORDER.forEach(s=>nc[s]=0);filt.forEach(l=>{if(nc[l.status]!==undefined)nc[l.status]++;});const tot=filt.length;return`<div class="hpanel"><div class="hpanel-hdr"><span class="hpanel-title">${niche==='plumbing'?'🔧 Plumbing':niche==='landscaping'?'🌿 Landscaping':'✨ Cleaning'}</span><span class="hpanel-badge">${tot}</span></div><div class="pipeline-wrap">${S_ORDER.map(s=>{const n=nc[s];const pct=Math.round((n/Math.max(tot,1))*100);return`<div class="ps-row"><span class="ps-lbl">${s.replace(/_/g,' ')}</span><div class="ps-track"><div class="ps-fill" style="width:${pct}%;background:${psfill(s)}"></div></div><span class="ps-n">${n}</span></div>`;}).join('')}</div></div>`;}).join('');
+  document.getElementById('hq-content').innerHTML=`<div class="hpanel"><div class="hpanel-hdr"><span class="hpanel-title">⚡ Full Pipeline</span><span class="hpanel-badge">${all.length} total</span></div><div class="pipeline-wrap">${S_ORDER.map(s=>{const n=counts[s];const pct=Math.round((n/maxC)*100);return`<div class="ps-row"><span class="ps-lbl">${s.replace(/_/g,' ')}</span><div class="ps-track"><div class="ps-fill" style="width:${pct}%;background:${psfill(s)}"></div></div><span class="ps-n">${n}</span></div>`;}).join('')}</div></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">${nPanels}</div>`;
+  hqTimer=setInterval(hqPipeline,30000);
+}
+
+// ── HQ LEADS ──
+async function hqLeads(){
+  document.getElementById('hq-content').innerHTML=`<div class="hpanel"><div class="hpanel-hdr"><span class="hpanel-title">🔍 All Leads</span></div><div class="sbar"><input class="sinput" type="search" placeholder="Search name or city..." value="${lSearch}" oninput="lSCh(this.value)"><select class="fsel" onchange="lNCh(this.value)"><option value="">All Niches</option><option value="plumbing" ${lNiche==='plumbing'?'selected':''}>Plumbing</option><option value="landscaping" ${lNiche==='landscaping'?'selected':''}>Landscaping</option><option value="house_cleaning" ${lNiche==='house_cleaning'?'selected':''}>Cleaning</option></select><select class="fsel" onchange="lStCh(this.value)"><option value="">All Statuses</option>${S_ORDER.map(s=>`<option value="${s}" ${lStatus===s?'selected':''}>${s.replace(/_/g,' ')}</option>`).join('')}</select></div><div id="ltbl"><div class="hq-empty">Loading...</div></div></div>`;
+  await loadLTbl();
+}
+async function loadLTbl(){
+  let p=`select=id,business_name,niche,city,state,contact_email,status,google_rating,review_count,created_at&order=created_at.desc&limit=${PER}&offset=${lPage*PER}`;
+  if(lNiche)p+=`&niche=eq.${lNiche}`;if(lStatus)p+=`&status=eq.${lStatus}`;
+  if(lSearch)p+=`&or=(business_name.ilike.*${encodeURIComponent(lSearch)}*,city.ilike.*${encodeURIComponent(lSearch)}*)`;
+  const r=await fetch(`${SURL}/rest/v1/leads?${p}`,{headers:{apikey:AKEY,Authorization:`Bearer ${AKEY}`,Prefer:'count=exact','Content-Range':'*'}});
+  const tot=parseInt(r.headers.get('content-range')?.split('/')[1]||'0');
+  const leads=await r.json();
+  const {data:demos}=await q('lead_demos','select=lead_id,demo_url,screenshot_url');
+  demos.forEach(d=>{if(!dCache[d.lead_id])dCache[d.lead_id]=d;});
+  const tp=Math.ceil(tot/PER);
+  const rows=(Array.isArray(leads)?leads:[]).map(l=>{const d=dCache[l.id];return`<tr><td class="td-m">${l.business_name||'—'}</td><td>${nbadge(l.niche)}</td><td>${l.city||''}${l.state?', '+l.state:''}</td><td>${l.google_rating?'⭐ '+l.google_rating:'—'}</td><td>${l.contact_email?`<span class="badge b-green">✓</span>`:`<span class="badge b-gray">—</span>`}</td><td>${sbadge(l.status)}</td><td>${d?`<a href="${d.demo_url}" target="_blank" class="td-lnk">view →</a>`:'—'}</td><td style="font-family:'JetBrains Mono',monospace;font-size:.65rem">${ta(l.created_at)}</td></tr>`;}).join('')||`<tr><td colspan="8"><div class="hq-empty">No leads</div></td></tr>`;
+  const el=document.getElementById('ltbl');if(!el)return;
+  el.innerHTML=`<div class="twrap"><table><thead><tr><th>Business</th><th>Niche</th><th>Location</th><th>Rating</th><th>Email</th><th>Status</th><th>Demo</th><th>Added</th></tr></thead><tbody>${rows}</tbody></table></div><div class="pgr"><span class="pgr-info">${lPage*PER+1}–${Math.min((lPage+1)*PER,tot)} of ${tot}</span><div class="pgr-btns"><button class="pg-btn" onclick="lPCh(${lPage-1})" ${lPage===0?'disabled':''}>← Prev</button><button class="pg-btn cur">${lPage+1}</button><button class="pg-btn" onclick="lPCh(${lPage+1})" ${lPage>=tp-1?'disabled':''}>Next →</button></div></div>`;
+}
+let lST2;function lSCh(v){lSearch=v;lPage=0;clearTimeout(lST2);lST2=setTimeout(loadLTbl,350);}
+function lNCh(v){lNiche=v;lPage=0;loadLTbl();}function lStCh(v){lStatus=v;lPage=0;loadLTbl();}function lPCh(p){lPage=p;loadLTbl();}
+
+// ── HQ OUTREACH ──
+async function hqOutreach(){
+  const ins=EMAILED_S.map(s=>`status.eq.${s}`).join(',');
+  const [{data:leads},{data:demos}]=await Promise.all([q('leads',`select=id,business_name,niche,city,state,contact_email,status,created_at&or=(${ins})&order=created_at.desc&limit=150`),q('lead_demos','select=lead_id,demo_url,screenshot_url')]);
+  const dm={};demos.forEach(d=>{if(!dm[d.lead_id])dm[d.lead_id]=d;});
+  const rows=leads.map(l=>{const d=dm[l.id];return`<tr><td class="td-m">${l.business_name||'—'}</td><td>${nbadge(l.niche)}</td><td>${l.city||''}${l.state?', '+l.state:''}</td><td style="font-family:'JetBrains Mono',monospace;font-size:.68rem">${l.contact_email||'—'}</td><td>${sbadge(l.status)}</td><td>${d?`<a href="${d.demo_url}" target="_blank" class="td-lnk">view →</a>`:'—'}</td><td>${d?.screenshot_url?`<img src="${d.screenshot_url}" style="width:60px;height:38px;object-fit:cover;border-radius:4px;border:1px solid var(--border-dark)" loading="lazy">`:'—'}</td></tr>`;}).join('')||`<tr><td colspan="7"><div class="hq-empty">None yet</div></td></tr>`;
+  document.getElementById('hq-content').innerHTML=`<div class="hpanel"><div class="hpanel-hdr"><span class="hpanel-title">📬 Outreach Log</span><span class="hpanel-badge">TEST MODE → benson8708@gmail.com</span></div><div class="twrap"><table><thead><tr><th>Business</th><th>Niche</th><th>Location</th><th>Real Email</th><th>Status</th><th>Demo</th><th>Screenshot</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
+  hqTimer=setInterval(hqOutreach,60000);
+}
+
+// ── HQ DOMAINS ──
+async function hqDomains(){
+  const start=new Date('2026-02-28'),days=Math.floor((Date.now()-start)/86400000),total=21,pct=Math.min(100,Math.round((days/total)*100));
+  const left=Math.max(0,Math.ceil((new Date('2026-03-15')-Date.now())/86400000));
+  const doms=['getremarketize.com','remarketizepro.com','remarketizesites.com'];
+  const cards=doms.map(d=>`<div class="wm-card"><div class="wm-dom">${d}</div><div class="wm-bar"><div class="wm-fill" style="width:${pct}%"></div></div><div class="wm-st"><span>Day ${days} of ${total}</span><span>${pct}% ready</span></div><div style="margin-top:6px;font-size:.65rem;color:var(--text3)">mike@${d}</div></div>`).join('');
+  document.getElementById('hq-content').innerHTML=`<div class="hpanel"><div class="hpanel-hdr"><span class="hpanel-title">🌐 Domain Warmup</span><span class="hpanel-badge" style="color:${left<=5?'#22c55e':'#f59e0b'}">${left}d to launch</span></div><div style="padding:12px 16px;border-bottom:1px solid var(--border-dark);font-size:.75rem;color:var(--text2);line-height:1.8">Purchased Feb 28, 2026 · Target: Mar 15 · Limit: 10 emails/day per domain<br><span style="color:#f59e0b">⚠️ getremarketize.com sent 92 emails on Day 1 — monitor deliverability</span></div><div class="warmup-grid">${cards}</div></div><div class="hpanel"><div class="hpanel-hdr"><span class="hpanel-title">📋 DNS Records</span></div><div class="twrap"><table><thead><tr><th>Domain</th><th>Type</th><th>Value</th><th>Status</th></tr></thead><tbody><tr><td class="td-m">remarketize.com</td><td><span class="badge b-blue">A</span></td><td style="font-family:'JetBrains Mono',monospace;font-size:.7rem">75.2.60.5</td><td><span class="badge b-green">✓ Live</span></td></tr>${doms.map(d=>`<tr><td class="td-m">${d}</td><td><span class="badge b-yellow">MX</span></td><td style="font-family:'JetBrains Mono',monospace;font-size:.7rem">mail.privateemail.com</td><td><span class="badge b-green">✓ Set</span></td></tr>`).join('')}</tbody></table></div></div>`;
+}
+
+// ── HQ REVENUE ──
+async function hqRevenue(){
+  const {data:all}=await q('leads','select=status');
+  const won=all.filter(l=>l.status==='won').length,mrr=won*99;
+  document.getElementById('hq-content').innerHTML=`<div class="kpi-row" style="grid-template-columns:repeat(4,1fr)"><div class="kpi kg"><div class="kpi-lbl">MRR</div><div class="kpi-val">$${mrr.toLocaleString()}</div><div class="kpi-sub">Monthly recurring</div></div><div class="kpi kg"><div class="kpi-lbl">Customers</div><div class="kpi-val">${won}</div><div class="kpi-sub">Active</div></div><div class="kpi ky"><div class="kpi-lbl">ARR</div><div class="kpi-val">$${(mrr*12).toLocaleString()}</div><div class="kpi-sub">Annual run rate</div></div><div class="kpi" style="--c:var(--red)"><div class="kpi-lbl">Blockers</div><div class="kpi-val" style="color:var(--red)">2</div><div class="kpi-sub">EIN + Stripe</div></div></div><div class="hpanel"><div class="hpanel-hdr"><span class="hpanel-title">💰 Revenue Blockers</span></div><div style="padding:16px;display:flex;flex-direction:column;gap:12px"><div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:8px;padding:14px"><div style="font-size:.82rem;font-weight:700;color:var(--red);margin-bottom:5px">🚫 EIN Not Applied</div><div style="font-size:.75rem;color:var(--text2);line-height:1.7">Apply at irs.gov — 5 min, need your SSN. Required before bank account and Stripe.</div></div><div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:8px;padding:14px"><div style="font-size:.82rem;font-weight:700;color:var(--red);margin-bottom:5px">🚫 Stripe Not Verified</div><div style="font-size:.75rem;color:var(--text2);line-height:1.7">Needs SSN + personal info. Can add EIN after setup. Products: Setup $199 · Monthly $99 · Revision $50.</div></div><div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:8px;padding:14px"><div style="font-size:.82rem;font-weight:700;color:var(--yellow);margin-bottom:5px">⏳ Real Outreach Locked Until March 15</div><div style="font-size:.75rem;color:var(--text2);line-height:1.7">All 127+ emails sent in test mode. Real cold outreach starts when domains finish warming.</div></div></div></div>`;
+}
+
+// ── CUSTOMER PORTAL ──
+function custNav(tab){
+  document.querySelectorAll('.c-tab').forEach(t=>t.classList.remove('active'));
+  const el=document.getElementById('ct-'+tab);if(el)el.classList.add('active');
+  const fn={site:custSite,changes:custChanges,billing:custBilling,support:custSupport};
+  if(fn[tab])fn[tab]();
+}
+function custSite(){
+  const biz=LEAD?.business_name||CUR_USER?.email?.split('@')[0]||'Your Business';
+  const city=LEAD?`${LEAD.city||''}${LEAD.state?', '+LEAD.state:''}`:'';
+  const hasDemo=!!DEMO?.demo_url;
+  document.getElementById('c-body').innerHTML=`<div class="c-welcome"><h2>Welcome back! 👋</h2><p>Here is a preview of the new website we built for ${biz}. Your site is live and ready for your feedback.</p></div><div class="c-card"><div class="c-card-hdr"><div><div class="c-card-title">Your Demo Website</div><div style="font-size:.78rem;color:#94a3b8;margin-top:2px">${city}</div></div><span style="font-size:.78rem;font-weight:700;padding:5px 12px;border-radius:50px;${hasDemo?'background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0':'background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe'}">${hasDemo?'● Live':'⏳ Building'}</span></div><div class="c-card-body">${hasDemo?`${DEMO.screenshot_url?`<img src="${DEMO.screenshot_url}" alt="Your website" style="width:100%;border-radius:10px;border:1px solid #e2e8f0;max-height:300px;object-fit:cover;display:block;margin-bottom:16px">`:''}<div style="display:flex;align-items:center;gap:10px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px 14px;margin-bottom:14px"><span style="font-size:.8rem;color:#475569;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:monospace">${DEMO.demo_url}</span><a href="${DEMO.demo_url}" target="_blank" class="c-btn">View Full Site →</a></div><p style="font-size:.83rem;color:#64748b;line-height:1.7">This is your free demo. Ready to go live? Subscribe for <strong>$99/month</strong> and we will set everything up for you.</p>`:`<div class="c-empty"><div class="c-empty-ico">🔨</div><p>We are building your website now. You will receive an email when your demo is ready.</p></div>`}</div></div>`;
+}
+function custChanges(){
+  document.getElementById('c-body').innerHTML=`<div class="c-card"><div class="c-card-hdr"><div class="c-card-title">Request a Change</div></div><div class="c-card-body">${!DEMO?'<div class="c-empty"><div class="c-empty-ico">🔨</div><p>Your demo must be ready before requesting changes.</p></div>':`<div id="rev-ok" style="background:#f0fdf4;border:1px solid #bbf7d0;color:#15803d;padding:12px;border-radius:8px;font-size:.85rem;font-weight:600;display:none;margin-bottom:14px">✓ Submitted! We will update your site within 24 hours.</div><textarea id="rev-txt" style="width:100%;border:1.5px solid #e2e8f0;border-radius:10px;padding:12px;font-size:.88rem;font-family:'Inter',sans-serif;resize:vertical;min-height:120px;outline:none;margin-bottom:12px" placeholder="Example: Update phone to (555) 123-4567, add Drain Inspection to services..."></textarea><div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:.78rem;color:#94a3b8">First change free. $50 per revision after that.</span><button class="c-btn" onclick="submitRev()">Submit</button></div>`}</div></div>`;
+}
+async function submitRev(){
+  const msg=document.getElementById('rev-txt')?.value?.trim();if(!msg)return;
+  await fetch(`${SURL}/rest/v1/revision_requests`,{method:'POST',headers:{apikey:AKEY,Authorization:`Bearer ${AKEY}`,'Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify({lead_id:LEAD?.id||null,customer_email:CUR_USER.email,message:msg,status:'open'})}).catch(()=>{});
+  document.getElementById('rev-ok').style.display='block';
+  document.getElementById('rev-txt').value='';
+}
+function custBilling(){
+  document.getElementById('c-body').innerHTML=`<div class="c-card"><div class="c-card-hdr"><div class="c-card-title">Billing</div></div><div class="c-card-body"><div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:10px;padding:18px;margin-bottom:18px"><div style="font-weight:700;color:#0284c7;margin-bottom:5px">💳 Billing Setup In Progress</div><p style="font-size:.83rem;color:#475569;line-height:1.7">We are finalizing our billing system. You will be able to manage your subscription here once it is live.</p></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px"><div style="background:#f8fafc;border-radius:10px;padding:16px;text-align:center"><div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#94a3b8;margin-bottom:8px">Setup Fee</div><div style="font-size:1.6rem;font-weight:800;color:#0ea5e9">$199</div><div style="font-size:.72rem;color:#94a3b8;margin-top:4px">One-time</div></div><div style="background:#f8fafc;border-radius:10px;padding:16px;text-align:center"><div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#94a3b8;margin-bottom:8px">Monthly</div><div style="font-size:1.6rem;font-weight:800;color:#0ea5e9">$99</div><div style="font-size:.72rem;color:#94a3b8;margin-top:4px">Cancel anytime</div></div><div style="background:#f8fafc;border-radius:10px;padding:16px;text-align:center"><div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#94a3b8;margin-bottom:8px">Revisions</div><div style="font-size:1.6rem;font-weight:800;color:#0ea5e9">$50</div><div style="font-size:.72rem;color:#94a3b8;margin-top:4px">Per change</div></div></div></div></div>`;
+}
+function custSupport(){
+  document.getElementById('c-body').innerHTML=`<div class="c-card"><div class="c-card-hdr"><div class="c-card-title">Support</div></div><div class="c-card-body" style="display:flex;flex-direction:column;gap:12px"><a href="mailto:info@remarketize.com" style="display:flex;align-items:center;gap:14px;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;padding:16px;cursor:pointer"><span style="font-size:1.5rem">✉️</span><div><div style="font-weight:700;margin-bottom:3px">Email Support</div><div style="font-size:.82rem;color:#475569">info@remarketize.com — reply within 24 hours</div></div></a><div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:16px"><div style="font-weight:700;color:#15803d;margin-bottom:8px">✅ What Is Included</div><div style="font-size:.83rem;color:#374151;line-height:2.2">✓ Hosting and domain management<br>✓ Monthly site updates<br>✓ Revision requests<br>✓ Technical support</div></div></div></div>`;
+}
+
+init();
+</script>
+</body>
+</html>
