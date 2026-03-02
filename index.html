@@ -361,8 +361,13 @@ function psfill(s){const m={new:'#484f58',scraping:'#f59e0b',scraped:'#f59e0b',b
 
 // ── HQ NAVIGATION ──
 const HQ_TITLES={overview:'Overview',agents:'Agents',pipeline:'Pipeline',leads:'Leads',outreach:'Outreach',domains:'Domain Warmup',revenue:'Revenue'};
+// Track ALL active timers so none leak between page navigations
+const _timers=new Set();
+function _setInterval(fn,ms){const id=setInterval(fn,ms);_timers.add(id);return id;}
+function _killAllTimers(){_timers.forEach(id=>{clearInterval(id);});_timers.clear();hqTimer=null;}
 function hqNav(page){
-  hqPage=page;if(hqTimer){clearInterval(hqTimer);hqTimer=null;}
+  _killAllTimers(); // kill every timer before navigating
+  hqPage=page;
   document.querySelectorAll('.sb-item').forEach(e=>e.classList.remove('active'));
   const el=document.getElementById('hn-'+page);if(el)el.classList.add('active');
   document.getElementById('hq-title').textContent=HQ_TITLES[page]||page;
@@ -373,6 +378,7 @@ function hqRefresh(){hqNav(hqPage);}
 
 // ── HQ OVERVIEW ──
 async function hqOverview(){
+  if(hqPage!=='overview')return; // stale timer guard
   document.getElementById('hq-content').innerHTML=`<div class="kpi-row">${Array(5).fill('<div class="kpi kb" style="min-height:80px;opacity:.3;animation:pulse 1.4s infinite"></div>').join('')}</div><div style="display:grid;grid-template-columns:1.3fr 1fr;gap:16px"><div style="height:340px;background:var(--panel);border:1px solid var(--border-dark);border-radius:10px;opacity:.3;animation:pulse 1.4s infinite"></div><div style="height:340px;background:var(--panel);border:1px solid var(--border-dark);border-radius:10px;opacity:.3;animation:pulse 1.4s infinite"></div></div>`;
   const [{data:all},{data:demos},{data:recent}]=await Promise.all([hq('leads','select=id,status,contact_email,niche'),hq('lead_demos','select=lead_id,demo_url,screenshot_url,created_at'),hq('leads','select=id,business_name,niche,city,state,status,contact_email,created_at&order=created_at.desc&limit=12')]);
   const total=all.length,demoBuilt=all.filter(l=>DEMO_S.includes(l.status)).length,emailed=all.filter(l=>EMAILED_S.includes(l.status)).length,won=all.filter(l=>l.status==='won').length;
@@ -381,34 +387,35 @@ async function hqOverview(){
   const dm={};demos.forEach(d=>{if(!dm[d.lead_id])dm[d.lead_id]=d;});
   const pipeline=S_ORDER.map(s=>{const n=counts[s];const pct=Math.round((n/maxC)*100);return`<div class="ps-row"><span class="ps-lbl">${s.replace(/_/g,' ')}</span><div class="ps-track"><div class="ps-fill" style="width:${pct}%;background:${psfill(s)}"></div></div><span class="ps-n">${n}</span></div>`;}).join('');
   const arows=recent.map(l=>{const d=dm[l.id];return`<div class="a-row" style="cursor:pointer" onclick="showLeadProfile('${l.id}')">${d?.screenshot_url?`<img src="${d.screenshot_url}" class="a-thumb" loading="lazy">`:`<div class="a-ico">${l.niche==='plumbing'?'🔧':l.niche==='landscaping'?'🌿':'✨'}</div>`}<div style="flex:1;min-width:0"><div class="a-name">${l.business_name||'Unknown'}</div><div class="a-meta">${nbadge(l.niche)} ${sbadge(l.status)} ${l.city||''}${l.state?', '+l.state:''} ${d?`<a href="${d.demo_url}" target="_blank" class="td-lnk" style="font-size:.65rem">demo →</a>`:''}</div></div><span class="a-time">${ta(l.created_at)}</span></div>`;}).join('')||`<div class="hq-empty">No activity yet</div>`;
+  if(hqPage!=='overview')return; // don't overwrite if user navigated away during fetch
   document.getElementById('hq-content').innerHTML=`<div class="kpi-row"><div class="kpi kb"><div class="kpi-lbl">Total Leads</div><div class="kpi-val">${total}</div><div class="kpi-sub">All niches</div></div><div class="kpi kb"><div class="kpi-lbl">Demos Built</div><div class="kpi-val">${demoBuilt}</div><div class="kpi-sub">Sites live</div></div><div class="kpi kp"><div class="kpi-lbl">Emailed</div><div class="kpi-val">${emailed}</div><div class="kpi-sub">Test mode</div></div><div class="kpi kg"><div class="kpi-lbl">Won</div><div class="kpi-val">${won}</div><div class="kpi-sub">Customers</div></div><div class="kpi ky"><div class="kpi-lbl">MRR</div><div class="kpi-val">$${(won*99).toLocaleString()}</div><div class="kpi-sub">Recurring</div></div></div><div style="display:grid;grid-template-columns:1.3fr 1fr;gap:16px"><div class="hpanel"><div class="hpanel-hdr"><span class="hpanel-title">⚡ Pipeline</span><span class="hpanel-badge">LIVE</span></div><div class="pipeline-wrap">${pipeline}</div></div><div class="hpanel"><div class="hpanel-hdr"><span class="hpanel-title">📡 Activity</span></div><div class="act-stream">${arows}</div></div></div>`;
-  hqTimer=setInterval(hqOverview,30000);
+  hqTimer=_setInterval(hqOverview,30000);
 }
 
 // ── HQ AGENTS ──
-async function hqAgents(){
+async function hqAgents(){const _p=hqPage;
   const [{data:leads},{data:profiles},{data:demos},{data:emailed}]=await Promise.all([hq('leads','select=created_at&order=created_at.desc&limit=1'),hq('lead_brand_profiles','select=created_at&order=created_at.desc&limit=1'),hq('lead_demos','select=created_at&order=created_at.desc&limit=1'),hq('leads','select=created_at&status=eq.emailed&order=created_at.desc&limit=1')]);
   const agents=[{emoji:'🔍',name:'Scout',role:'Lead Finder',desc:'Finds qualified leads from Google Maps daily',last:leads.data?.[0]?.created_at},{emoji:'🌾',name:'Harvest',role:'Web Scraper',desc:'Scrapes website assets, emails, brand colors',last:leads.data?.[0]?.created_at},{emoji:'🎨',name:'Prism',role:'Brand Synthesizer',desc:'Analyzes brands, generates copy and profiles',last:profiles.data?.[0]?.created_at},{emoji:'🔨',name:'Forge',role:'Demo Builder',desc:'Builds niche demo sites and deploys them live',last:demos.data?.[0]?.created_at},{emoji:'🛡️',name:'Sentinel',role:'QA Agent',desc:'Scores demos for quality and mobile compliance',last:demos.data?.[0]?.created_at},{emoji:'📸',name:'Screenshot',role:'Capture Bot',desc:'Takes Playwright screenshots for email embeds',last:demos.data?.[0]?.created_at},{emoji:'📬',name:'Mercury',role:'Outreach Agent',desc:'Sends personalized emails with demo screenshots',last:emailed.data?.[0]?.created_at},{emoji:'🔥',name:'Warm Domains',role:'Domain Warmer',desc:'Sends warmup emails to build sender reputation',last:new Date().toISOString()}];
   const cards=agents.map(a=>{const recent=a.last&&(Date.now()-new Date(a.last))/1000<7200;const sc=a.last?(recent?'g':'y'):'x';return`<div class="ag-card"><div class="ag-top"><div style="display:flex;align-items:center;gap:7px"><span style="font-size:1.1rem">${a.emoji}</span><span class="ag-name">${a.name}</span></div><div style="display:flex;align-items:center;gap:5px"><div class="sdot ${sc}"></div><span style="font-size:.62rem;color:var(--text3)">${a.last?(recent?'Active':'Idle'):'Standby'}</span></div></div><div class="ag-role">${a.role}</div><div class="ag-desc">${a.desc}</div><div class="ag-last">Last: ${ta(a.last)}</div></div>`;}).join('');
   const {data:recent30}=await hq('leads','select=id,business_name,niche,city,state,status,created_at&order=created_at.desc&limit=30');
   const rows=recent30.map(l=>`<tr><td class="td-m">${l.business_name||'—'}</td><td>${nbadge(l.niche)}</td><td>${l.city||''}${l.state?', '+l.state:''}</td><td>${sbadge(l.status)}</td><td style="font-family:'JetBrains Mono',monospace;font-size:.68rem">${fd(l.created_at)}</td></tr>`).join('');
   document.getElementById('hq-content').innerHTML=`<div class="hpanel"><div class="hpanel-hdr"><span class="hpanel-title">🤖 Agent Status</span></div><div class="agent-grid">${cards}</div></div><div class="hpanel"><div class="hpanel-hdr"><span class="hpanel-title">📋 Recent Lead Activity</span></div><div class="twrap"><table><thead><tr><th>Business</th><th>Niche</th><th>Location</th><th>Status</th><th>Added</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
-  hqTimer=setInterval(hqAgents,60000);
+  hqTimer=_setInterval(hqAgents,60000);
 }
 
 // ── HQ PIPELINE ──
-async function hqPipeline(){
+async function hqPipeline(){const _p=hqPage;
   const {data:all}=await hq('leads','select=id,status,niche');
   const counts={};S_ORDER.forEach(s=>counts[s]=0);all.forEach(l=>{if(counts[l.status]!==undefined)counts[l.status]++;});
   const maxC=Math.max(...Object.values(counts),1);
   const niches=['plumbing','landscaping','house_cleaning'];
   const nPanels=niches.map(niche=>{const filt=all.filter(l=>l.niche===niche);const nc={};S_ORDER.forEach(s=>nc[s]=0);filt.forEach(l=>{if(nc[l.status]!==undefined)nc[l.status]++;});const tot=filt.length;return`<div class="hpanel"><div class="hpanel-hdr"><span class="hpanel-title">${niche==='plumbing'?'🔧 Plumbing':niche==='landscaping'?'🌿 Landscaping':'✨ Cleaning'}</span><span class="hpanel-badge">${tot}</span></div><div class="pipeline-wrap">${S_ORDER.map(s=>{const n=nc[s];const pct=Math.round((n/Math.max(tot,1))*100);return`<div class="ps-row"><span class="ps-lbl">${s.replace(/_/g,' ')}</span><div class="ps-track"><div class="ps-fill" style="width:${pct}%;background:${psfill(s)}"></div></div><span class="ps-n">${n}</span></div>`;}).join('')}</div></div>`;}).join('');
   document.getElementById('hq-content').innerHTML=`<div class="hpanel"><div class="hpanel-hdr"><span class="hpanel-title">⚡ Full Pipeline</span><span class="hpanel-badge">${all.length} total</span></div><div class="pipeline-wrap">${S_ORDER.map(s=>{const n=counts[s];const pct=Math.round((n/maxC)*100);return`<div class="ps-row"><span class="ps-lbl">${s.replace(/_/g,' ')}</span><div class="ps-track"><div class="ps-fill" style="width:${pct}%;background:${psfill(s)}"></div></div><span class="ps-n">${n}</span></div>`;}).join('')}</div></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">${nPanels}</div>`;
-  hqTimer=setInterval(hqPipeline,30000);
+  hqTimer=_setInterval(hqPipeline,30000);
 }
 
 // ── HQ LEADS ──
-async function hqLeads(){
+async function hqLeads(){const _p=hqPage;
   document.getElementById('hq-content').innerHTML=`<div class="hpanel"><div class="hpanel-hdr"><span class="hpanel-title">🔍 All Leads</span></div><div class="sbar"><input class="sinput" type="search" placeholder="Search name or city..." value="${lSearch}" oninput="lSCh(this.value)"><select class="fsel" onchange="lNCh(this.value)"><option value="">All Niches</option><option value="plumbing" ${lNiche==='plumbing'?'selected':''}>Plumbing</option><option value="landscaping" ${lNiche==='landscaping'?'selected':''}>Landscaping</option><option value="house_cleaning" ${lNiche==='house_cleaning'?'selected':''}>Cleaning</option></select><select class="fsel" onchange="lStCh(this.value)"><option value="">All Statuses</option>${S_ORDER.map(s=>`<option value="${s}" ${lStatus===s?'selected':''}>${s.replace(/_/g,' ')}</option>`).join('')}</select></div><div id="ltbl"><div class="hq-empty">Loading...</div></div></div>`;
   await loadLTbl();
 }
@@ -430,17 +437,17 @@ let lST2;function lSCh(v){lSearch=v;lPage=0;clearTimeout(lST2);lST2=setTimeout(l
 function lNCh(v){lNiche=v;lPage=0;loadLTbl();}function lStCh(v){lStatus=v;lPage=0;loadLTbl();}function lPCh(p){lPage=p;loadLTbl();}
 
 // ── HQ OUTREACH ──
-async function hqOutreach(){
+async function hqOutreach(){const _p=hqPage;
   const ins=EMAILED_S.map(s=>`status.eq.${s}`).join(',');
   const [{data:leads},{data:demos}]=await Promise.all([hq('leads',`select=id,business_name,niche,city,state,contact_email,status,created_at&or=(${ins})&order=created_at.desc&limit=150`),hq('lead_demos','select=lead_id,demo_url,screenshot_url')]);
   const dm={};demos.forEach(d=>{if(!dm[d.lead_id])dm[d.lead_id]=d;});
   const rows=leads.map(l=>{const d=dm[l.id];return`<tr><td class="td-m">${l.business_name||'—'}</td><td>${nbadge(l.niche)}</td><td>${l.city||''}${l.state?', '+l.state:''}</td><td style="font-family:'JetBrains Mono',monospace;font-size:.68rem">${l.contact_email||'—'}</td><td>${sbadge(l.status)}</td><td>${d?`<a href="${d.demo_url}" target="_blank" class="td-lnk">view →</a>`:'—'}</td><td>${d?.screenshot_url?`<img src="${d.screenshot_url}" style="width:60px;height:38px;object-fit:cover;border-radius:4px;border:1px solid var(--border-dark)" loading="lazy">`:'—'}</td></tr>`;}).join('')||`<tr><td colspan="7"><div class="hq-empty">None yet</div></td></tr>`;
   document.getElementById('hq-content').innerHTML=`<div class="hpanel"><div class="hpanel-hdr"><span class="hpanel-title">📬 Outreach Log</span><span class="hpanel-badge">TEST MODE → benson8708@gmail.com</span></div><div class="twrap"><table><thead><tr><th>Business</th><th>Niche</th><th>Location</th><th>Real Email</th><th>Status</th><th>Demo</th><th>Screenshot</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
-  hqTimer=setInterval(hqOutreach,60000);
+  hqTimer=_setInterval(hqOutreach,60000);
 }
 
 // ── HQ DOMAINS ──
-async function hqDomains(){
+async function hqDomains(){const _p=hqPage;
   const start=new Date('2026-02-28'),days=Math.floor((Date.now()-start)/86400000),total=21,pct=Math.min(100,Math.round((days/total)*100));
   const left=Math.max(0,Math.ceil((new Date('2026-03-15')-Date.now())/86400000));
   const doms=['getremarketize.com','remarketizepro.com','remarketizesites.com'];
@@ -449,7 +456,7 @@ async function hqDomains(){
 }
 
 // ── HQ REVENUE ──
-async function hqRevenue(){
+async function hqRevenue(){const _p=hqPage;
   const {data:all}=await hq('leads','select=status');
   const won=all.filter(l=>l.status==='won').length,mrr=won*99;
   document.getElementById('hq-content').innerHTML=`<div class="kpi-row" style="grid-template-columns:repeat(4,1fr)"><div class="kpi kg"><div class="kpi-lbl">MRR</div><div class="kpi-val">$${mrr.toLocaleString()}</div><div class="kpi-sub">Monthly recurring</div></div><div class="kpi kg"><div class="kpi-lbl">Customers</div><div class="kpi-val">${won}</div><div class="kpi-sub">Active</div></div><div class="kpi ky"><div class="kpi-lbl">ARR</div><div class="kpi-val">$${(mrr*12).toLocaleString()}</div><div class="kpi-sub">Annual run rate</div></div><div class="kpi" style="--c:var(--red)"><div class="kpi-lbl">Blockers</div><div class="kpi-val" style="color:var(--red)">2</div><div class="kpi-sub">EIN + Stripe</div></div></div><div class="hpanel"><div class="hpanel-hdr"><span class="hpanel-title">💰 Revenue Blockers</span></div><div style="padding:16px;display:flex;flex-direction:column;gap:12px"><div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:8px;padding:14px"><div style="font-size:.82rem;font-weight:700;color:var(--red);margin-bottom:5px">🚫 EIN Not Applied</div><div style="font-size:.75rem;color:var(--text2);line-height:1.7">Apply at irs.gov — 5 min, need your SSN. Required before bank account and Stripe.</div></div><div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:8px;padding:14px"><div style="font-size:.82rem;font-weight:700;color:var(--red);margin-bottom:5px">🚫 Stripe Not Verified</div><div style="font-size:.75rem;color:var(--text2);line-height:1.7">Needs SSN + personal info. Can add EIN after setup. Products: Setup $199 · Monthly $99 · Revision $50.</div></div><div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:8px;padding:14px"><div style="font-size:.82rem;font-weight:700;color:var(--yellow);margin-bottom:5px">⏳ Real Outreach Locked Until March 15</div><div style="font-size:.75rem;color:var(--text2);line-height:1.7">All 127+ emails sent in test mode. Real cold outreach starts when domains finish warming.</div></div></div></div>`;
