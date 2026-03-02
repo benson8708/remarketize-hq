@@ -491,19 +491,37 @@ async function showLeadProfile(id) {
   const content = document.getElementById('hq-content');
   content.innerHTML = `<div class="profile-wrap"><button class="profile-back" onclick="hqNav('leads')">← Back to Leads</button><div class="hq-empty" style="padding:60px">Loading profile...</div></div>`;
 
-  // Fetch all data in parallel
+  // Fetch all data in parallel — use correct lead_assets table
   const [leadRes, demoRes, brandRes, assetRes] = await Promise.all([
     fetch(`${SURL}/rest/v1/leads?id=eq.${id}`, {headers:{apikey:SKEY,Authorization:`Bearer ${SKEY}`}}),
     fetch(`${SURL}/rest/v1/lead_demos?lead_id=eq.${id}&order=created_at.desc&limit=1`, {headers:{apikey:SKEY,Authorization:`Bearer ${SKEY}`}}),
     fetch(`${SURL}/rest/v1/lead_brand_profiles?lead_id=eq.${id}&limit=1`, {headers:{apikey:SKEY,Authorization:`Bearer ${SKEY}`}}),
-    fetch(`${SURL}/rest/v1/lead_scraped_assets?lead_id=eq.${id}&limit=1`, {headers:{apikey:SKEY,Authorization:`Bearer ${SKEY}`}}).catch(()=>({json:async()=>[]})),
+    fetch(`${SURL}/rest/v1/lead_assets?lead_id=eq.${id}`, {headers:{apikey:SKEY,Authorization:`Bearer ${SKEY}`}}).catch(()=>({json:async()=>[]})),
   ]);
 
-  const [leads, demos, brands, assets] = await Promise.all([leadRes.json(), demoRes.json(), brandRes.json(), assetRes.json()]);
+  const [leads, demos, brands, rawAssets] = await Promise.all([leadRes.json(), demoRes.json(), brandRes.json(), assetRes.json()]);
   const lead = leads[0]; if(!lead){content.innerHTML='<div class="hq-empty">Lead not found</div>';return;}
-  const demo = demos[0]||null;
+  const demo  = demos[0]||null;
   const brand = brands[0]||null;
-  const asset = assets[0]||null;
+
+  // Parse lead_assets rows by type
+  const allAssets = Array.isArray(rawAssets) ? rawAssets : [];
+  const heroAsset    = allAssets.find(a=>a.asset_type==='hero_image');
+  const logoAsset    = allAssets.find(a=>a.asset_type==='logo');
+  const galleryAssets= allAssets.filter(a=>a.asset_type==='gallery_image');
+  const copyAsset    = allAssets.find(a=>a.asset_type==='copy');
+  const meta         = copyAsset?.metadata || {};
+
+  // Parsed scraped data
+  const heroUrl    = heroAsset?.source_url || null;
+  const logoUrl    = logoAsset?.source_url || null;
+  const galleryUrls= galleryAssets.map(a=>a.source_url).filter(Boolean);
+  const tagline    = meta.tagline || brand?.tagline || null;
+  const aboutText  = meta.about_text || null;
+  const services   = Array.isArray(meta.services)   ? meta.services   : [];
+  const areas      = Array.isArray(meta.service_areas) ? meta.service_areas.filter(a=>!['CITIES','Areas Serve'].includes(a)) : [];
+  const diffs      = Array.isArray(meta.differentiators) ? meta.differentiators : [];
+  const fonts      = Array.isArray(meta.fonts) ? meta.fonts : [];
 
   const niche = (lead.niche||'').toLowerCase();
   const nicheIcon = niche==='plumbing'?'🔧':niche==='landscaping'?'🌿':'✨';
@@ -619,21 +637,44 @@ async function showLeadProfile(id) {
             <div class="pinfo-grid">
               ${brand.primary_color?`<div class="pinfo-item"><div class="pi-label">Primary Color</div><div class="pi-val"><span class="brand-swatch" style="background:${brand.primary_color}"></span>${brand.primary_color}</div></div>`:''}
               ${brand.secondary_color?`<div class="pinfo-item"><div class="pi-label">Secondary</div><div class="pi-val"><span class="brand-swatch" style="background:${brand.secondary_color}"></span>${brand.secondary_color}</div></div>`:''}
-              ${brand.font_family?`<div class="pinfo-item"><div class="pi-label">Font</div><div class="pi-val">${brand.font_family}</div></div>`:''}
-              ${brand.tone?`<div class="pinfo-item"><div class="pi-label">Tone</div><div class="pi-val">${brand.tone}</div></div>`:''}
+              ${brand.font_heading?`<div class="pinfo-item"><div class="pi-label">Heading Font</div><div class="pi-val">${brand.font_heading}</div></div>`:''}
+              ${brand.font_body?`<div class="pinfo-item"><div class="pi-label">Body Font</div><div class="pi-val">${brand.font_body}</div></div>`:''}
+              ${brand.voice_tone?`<div class="pinfo-item"><div class="pi-label">Tone</div><div class="pi-val">${brand.voice_tone}</div></div>`:''}
+              ${brand.brand_vibe?`<div class="pinfo-item" style="grid-column:1/-1"><div class="pi-label">Brand Vibe</div><div class="pi-val" style="font-size:.75rem">${brand.brand_vibe}</div></div>`:''}
             </div>
             ${brand.tagline?`<div style="margin-top:10px;padding:10px;background:var(--panel2);border-radius:6px;font-size:.8rem;color:var(--text);font-style:italic">"${brand.tagline}"</div>`:''}
           </div>
         </div>` : ''}
 
-        <!-- SCRAPED ASSETS -->
-        ${asset ? `<div class="pcard">
+        <!-- SCRAPED ASSETS — full rich display -->
+        ${allAssets.length > 0 ? `<div class="pcard">
           <div class="pcard-hdr">🌾 Scraped Assets</div>
-          <div class="pcard-body" style="display:flex;flex-direction:column;gap:10px">
-            ${asset.logo_url?`<div><div class="pi-label">Logo</div><img src="${asset.logo_url}" style="max-height:48px;max-width:160px;margin-top:4px;border-radius:4px"></div>`:''}
-            ${asset.hero_image_url?`<div><div class="pi-label">Hero Image</div><img src="${asset.hero_image_url}" style="width:100%;max-height:100px;object-fit:cover;border-radius:6px;margin-top:4px;border:1px solid var(--border-dark)"></div>`:''}
-            ${asset.tagline?`<div><div class="pi-label">Tagline</div><div class="pi-val" style="font-style:italic">"${asset.tagline}"</div></div>`:''}
-            ${asset.about_text?`<div><div class="pi-label">About Text</div><div style="font-size:.73rem;color:var(--text2);line-height:1.6;margin-top:4px">${asset.about_text.substring(0,200)}${asset.about_text.length>200?'...':''}</div></div>`:''}
+          <div class="pcard-body" style="display:flex;flex-direction:column;gap:14px">
+
+            <!-- Logo + Hero side by side -->
+            ${(logoUrl||heroUrl) ? `<div style="display:flex;gap:12px;align-items:flex-start">
+              ${logoUrl?`<div style="flex:0 0 auto"><div class="pi-label" style="margin-bottom:4px">Logo</div><img src="${logoUrl}" style="max-height:52px;max-width:140px;border-radius:4px;background:#fff;padding:4px;border:1px solid var(--border-dark)"></div>`:''}
+              ${heroUrl?`<div style="flex:1"><div class="pi-label" style="margin-bottom:4px">Hero Image</div><img src="${heroUrl}" style="width:100%;height:80px;object-fit:cover;border-radius:6px;border:1px solid var(--border-dark)"></div>`:''}
+            </div>` : ''}
+
+            <!-- Tagline -->
+            ${tagline?`<div><div class="pi-label">Detected Tagline</div><div style="font-size:.82rem;color:var(--text);font-style:italic;margin-top:4px;padding:8px 10px;background:var(--panel2);border-radius:6px;border-left:3px solid var(--accent)">"${tagline}"</div></div>`:''}
+
+            <!-- About Text -->
+            ${aboutText?`<div><div class="pi-label">About Text</div><div style="font-size:.73rem;color:var(--text2);line-height:1.65;margin-top:4px">${aboutText.substring(0,300)}${aboutText.length>300?'…':''}</div></div>`:''}
+
+            <!-- Services -->
+            ${services.length>0?`<div><div class="pi-label">Services Detected (${services.length})</div><div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:6px">${services.map(s=>`<span style="background:var(--panel2);border:1px solid var(--border-dark);border-radius:4px;padding:3px 8px;font-size:.7rem;color:var(--text2)">${s}</span>`).join('')}</div></div>`:''}
+
+            <!-- Service Areas -->
+            ${areas.length>0?`<div><div class="pi-label">Service Areas (${areas.length})</div><div style="font-size:.75rem;color:var(--text2);margin-top:4px">${areas.join(' · ')}</div></div>`:''}
+
+            <!-- Differentiators -->
+            ${diffs.length>0?`<div><div class="pi-label">Differentiators</div><div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:6px">${diffs.map(d=>`<span style="background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.25);border-radius:4px;padding:3px 8px;font-size:.7rem;color:#4ade80">✓ ${d}</span>`).join('')}</div></div>`:''}
+
+            <!-- Gallery -->
+            ${galleryUrls.length>0?`<div><div class="pi-label">Gallery Images (${galleryUrls.length})</div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:6px">${galleryUrls.slice(0,6).map(u=>`<img src="${u}" style="width:100%;height:52px;object-fit:cover;border-radius:4px;border:1px solid var(--border-dark)">`).join('')}</div></div>`:''}
+
           </div>
         </div>` : ''}
 
