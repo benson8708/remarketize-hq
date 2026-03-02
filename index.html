@@ -161,6 +161,55 @@ tr:hover td{background:rgba(255,255,255,.02)}
 .c-welcome p{font-size:.88rem;opacity:.9;line-height:1.6}
 .c-empty{text-align:center;padding:48px 20px;color:#94a3b8}
 .c-empty-ico{font-size:2.5rem;margin-bottom:10px;opacity:.4}
+
+/* ── LEAD PROFILE ── */
+.profile-wrap{animation:fadeIn .2s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.profile-back{display:flex;align-items:center;gap:8px;background:none;border:1px solid var(--border-dark);color:var(--text2);font-size:.8rem;font-weight:600;padding:7px 14px;border-radius:6px;margin-bottom:16px;transition:all .15s}
+.profile-back:hover{border-color:var(--accent);color:var(--accent)}
+.profile-hero{background:var(--panel);border:1px solid var(--border-dark);border-radius:12px;overflow:hidden;margin-bottom:16px}
+.profile-hero-img{width:100%;max-height:280px;object-fit:cover;object-position:top;display:block;border-bottom:1px solid var(--border-dark)}
+.profile-hero-img-placeholder{height:180px;background:linear-gradient(135deg,var(--panel2),var(--panel));display:flex;align-items:center;justify-content:center;font-size:4rem;border-bottom:1px solid var(--border-dark)}
+.profile-hero-body{padding:18px 20px;display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.profile-biz-name{font-size:1.3rem;font-weight:800;color:var(--text);margin-bottom:8px}
+.profile-badges{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.profile-meta{display:flex;gap:16px;flex-wrap:wrap}
+.profile-meta-item{font-size:.78rem;color:var(--text3);display:flex;align-items:center;gap:5px}
+.profile-actions{display:flex;gap:8px;flex-wrap:wrap;flex-shrink:0}
+.btn-profile{padding:8px 16px;border-radius:6px;font-size:.78rem;font-weight:700;border:none;cursor:pointer;transition:all .15s;white-space:nowrap}
+.btn-p-primary{background:var(--accent);color:var(--bg-dark)}
+.btn-p-primary:hover{opacity:.85}
+.btn-p-outline{background:none;border:1px solid var(--border-dark);color:var(--text2)}
+.btn-p-outline:hover{border-color:var(--accent);color:var(--accent)}
+.profile-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:16px;margin-bottom:16px}
+.pcard{background:var(--panel);border:1px solid var(--border-dark);border-radius:10px;overflow:hidden}
+.pcard-hdr{padding:12px 16px;border-bottom:1px solid var(--border-dark);font-size:.78rem;font-weight:700;color:var(--text);display:flex;align-items:center;gap:7px}
+.pcard-body{padding:16px}
+.pinfo-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.pinfo-item .pi-label{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--text3);margin-bottom:4px}
+.pinfo-item .pi-val{font-size:.83rem;color:var(--text);font-weight:500;word-break:break-all}
+.pi-val a{color:var(--accent)}.pi-val a:hover{text-decoration:underline}
+.demo-thumb-lg{width:100%;border-radius:8px;border:1px solid var(--border-dark);display:block;margin-bottom:12px;cursor:pointer;transition:opacity .2s}
+.demo-thumb-lg:hover{opacity:.85}
+.demo-url-bar{display:flex;align-items:center;gap:8px;background:var(--panel2);border:1px solid var(--border-dark);border-radius:6px;padding:8px 12px}
+.demo-url-text{font-size:.72rem;color:var(--text2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:'JetBrains Mono',monospace}
+.brand-swatch{display:inline-block;width:20px;height:20px;border-radius:4px;border:1px solid rgba(255,255,255,.1);vertical-align:middle;margin-right:6px}
+.timeline{padding:4px 0}
+.tl-item{display:flex;gap:12px;padding:10px 0;position:relative}
+.tl-item:not(:last-child)::after{content:'';position:absolute;left:11px;top:28px;bottom:0;width:1px;background:var(--border-dark)}
+.tl-dot{width:22px;height:22px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.7rem;margin-top:1px}
+.tl-dot.green{background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.3);color:var(--green)}
+.tl-dot.blue{background:rgba(56,189,248,.12);border:1px solid rgba(56,189,248,.25);color:var(--accent)}
+.tl-dot.purple{background:rgba(168,85,247,.12);border:1px solid rgba(168,85,247,.25);color:var(--purple)}
+.tl-dot.yellow{background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.25);color:var(--yellow)}
+.tl-dot.gray{background:var(--panel2);border:1px solid var(--border-dark);color:var(--text3)}
+.tl-body{}
+.tl-title{font-size:.8rem;font-weight:600;color:var(--text);margin-bottom:2px}
+.tl-sub{font-size:.7rem;color:var(--text3)}
+.tl-time{font-size:.65rem;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-top:2px}
+.score-bar{height:6px;background:var(--panel2);border-radius:50px;overflow:hidden;margin-top:6px}
+.score-fill{height:100%;border-radius:50px}
+.full-width-pcard{background:var(--panel);border:1px solid var(--border-dark);border-radius:10px;overflow:hidden;margin-bottom:16px}
 </style>
 </head>
 <body>
@@ -331,7 +380,7 @@ async function hqOverview(){
   const maxC=Math.max(...Object.values(counts),1);
   const dm={};demos.forEach(d=>{if(!dm[d.lead_id])dm[d.lead_id]=d;});
   const pipeline=S_ORDER.map(s=>{const n=counts[s];const pct=Math.round((n/maxC)*100);return`<div class="ps-row"><span class="ps-lbl">${s.replace(/_/g,' ')}</span><div class="ps-track"><div class="ps-fill" style="width:${pct}%;background:${psfill(s)}"></div></div><span class="ps-n">${n}</span></div>`;}).join('');
-  const arows=recent.map(l=>{const d=dm[l.id];return`<div class="a-row">${d?.screenshot_url?`<img src="${d.screenshot_url}" class="a-thumb" loading="lazy">`:`<div class="a-ico">${l.niche==='plumbing'?'🔧':l.niche==='landscaping'?'🌿':'✨'}</div>`}<div style="flex:1;min-width:0"><div class="a-name">${l.business_name||'Unknown'}</div><div class="a-meta">${nbadge(l.niche)} ${sbadge(l.status)} ${l.city||''}${l.state?', '+l.state:''} ${d?`<a href="${d.demo_url}" target="_blank" class="td-lnk" style="font-size:.65rem">demo →</a>`:''}</div></div><span class="a-time">${ta(l.created_at)}</span></div>`;}).join('')||`<div class="hq-empty">No activity yet</div>`;
+  const arows=recent.map(l=>{const d=dm[l.id];return`<div class="a-row" style="cursor:pointer" onclick="showLeadProfile('${l.id}')">${d?.screenshot_url?`<img src="${d.screenshot_url}" class="a-thumb" loading="lazy">`:`<div class="a-ico">${l.niche==='plumbing'?'🔧':l.niche==='landscaping'?'🌿':'✨'}</div>`}<div style="flex:1;min-width:0"><div class="a-name">${l.business_name||'Unknown'}</div><div class="a-meta">${nbadge(l.niche)} ${sbadge(l.status)} ${l.city||''}${l.state?', '+l.state:''} ${d?`<a href="${d.demo_url}" target="_blank" class="td-lnk" style="font-size:.65rem">demo →</a>`:''}</div></div><span class="a-time">${ta(l.created_at)}</span></div>`;}).join('')||`<div class="hq-empty">No activity yet</div>`;
   document.getElementById('hq-content').innerHTML=`<div class="kpi-row"><div class="kpi kb"><div class="kpi-lbl">Total Leads</div><div class="kpi-val">${total}</div><div class="kpi-sub">All niches</div></div><div class="kpi kb"><div class="kpi-lbl">Demos Built</div><div class="kpi-val">${demoBuilt}</div><div class="kpi-sub">Sites live</div></div><div class="kpi kp"><div class="kpi-lbl">Emailed</div><div class="kpi-val">${emailed}</div><div class="kpi-sub">Test mode</div></div><div class="kpi kg"><div class="kpi-lbl">Won</div><div class="kpi-val">${won}</div><div class="kpi-sub">Customers</div></div><div class="kpi ky"><div class="kpi-lbl">MRR</div><div class="kpi-val">$${(won*99).toLocaleString()}</div><div class="kpi-sub">Recurring</div></div></div><div style="display:grid;grid-template-columns:1.3fr 1fr;gap:16px"><div class="hpanel"><div class="hpanel-hdr"><span class="hpanel-title">⚡ Pipeline</span><span class="hpanel-badge">LIVE</span></div><div class="pipeline-wrap">${pipeline}</div></div><div class="hpanel"><div class="hpanel-hdr"><span class="hpanel-title">📡 Activity</span></div><div class="act-stream">${arows}</div></div></div>`;
   hqTimer=setInterval(hqOverview,30000);
 }
@@ -373,7 +422,7 @@ async function loadLTbl(){
   const {data:demos}=await hq('lead_demos','select=lead_id,demo_url,screenshot_url');
   demos.forEach(d=>{if(!dCache[d.lead_id])dCache[d.lead_id]=d;});
   const tp=Math.ceil(tot/PER);
-  const rows=(Array.isArray(leads)?leads:[]).map(l=>{const d=dCache[l.id];return`<tr><td class="td-m">${l.business_name||'—'}</td><td>${nbadge(l.niche)}</td><td>${l.city||''}${l.state?', '+l.state:''}</td><td>${l.google_rating?'⭐ '+l.google_rating:'—'}</td><td>${l.contact_email?`<span class="badge b-green">✓</span>`:`<span class="badge b-gray">—</span>`}</td><td>${sbadge(l.status)}</td><td>${d?`<a href="${d.demo_url}" target="_blank" class="td-lnk">view →</a>`:'—'}</td><td style="font-family:'JetBrains Mono',monospace;font-size:.65rem">${ta(l.created_at)}</td></tr>`;}).join('')||`<tr><td colspan="8"><div class="hq-empty">No leads</div></td></tr>`;
+  const rows=(Array.isArray(leads)?leads:[]).map(l=>{const d=dCache[l.id];return`<tr style="cursor:pointer" onclick="showLeadProfile('${l.id}')"><td class="td-m">${l.business_name||'—'}</td><td>${nbadge(l.niche)}</td><td>${l.city||''}${l.state?', '+l.state:''}</td><td>${l.google_rating?'⭐ '+l.google_rating:'—'}</td><td>${l.contact_email?`<span class="badge b-green">✓</span>`:`<span class="badge b-gray">—</span>`}</td><td>${sbadge(l.status)}</td><td>${d?`<a href="${d.demo_url}" target="_blank" class="td-lnk">view →</a>`:'—'}</td><td style="font-family:'JetBrains Mono',monospace;font-size:.65rem">${ta(l.created_at)}</td></tr>`;}).join('')||`<tr><td colspan="8"><div class="hq-empty">No leads</div></td></tr>`;
   const el=document.getElementById('ltbl');if(!el)return;
   el.innerHTML=`<div class="twrap"><table><thead><tr><th>Business</th><th>Niche</th><th>Location</th><th>Rating</th><th>Email</th><th>Status</th><th>Demo</th><th>Added</th></tr></thead><tbody>${rows}</tbody></table></div><div class="pgr"><span class="pgr-info">${lPage*PER+1}–${Math.min((lPage+1)*PER,tot)} of ${tot}</span><div class="pgr-btns"><button class="pg-btn" onclick="lPCh(${lPage-1})" ${lPage===0?'disabled':''}>← Prev</button><button class="pg-btn cur">${lPage+1}</button><button class="pg-btn" onclick="lPCh(${lPage+1})" ${lPage>=tp-1?'disabled':''}>Next →</button></div></div>`;
 }
@@ -436,6 +485,193 @@ function custSupport(){
 }
 
 init();
+
+// ── LEAD PROFILE ──
+async function showLeadProfile(id) {
+  const content = document.getElementById('hq-content');
+  content.innerHTML = `<div class="profile-wrap"><button class="profile-back" onclick="hqNav('leads')">← Back to Leads</button><div class="hq-empty" style="padding:60px">Loading profile...</div></div>`;
+
+  // Fetch all data in parallel
+  const [leadRes, demoRes, brandRes, assetRes] = await Promise.all([
+    fetch(`${SURL}/rest/v1/leads?id=eq.${id}`, {headers:{apikey:SKEY,Authorization:`Bearer ${SKEY}`}}),
+    fetch(`${SURL}/rest/v1/lead_demos?lead_id=eq.${id}&order=created_at.desc&limit=1`, {headers:{apikey:SKEY,Authorization:`Bearer ${SKEY}`}}),
+    fetch(`${SURL}/rest/v1/lead_brand_profiles?lead_id=eq.${id}&limit=1`, {headers:{apikey:SKEY,Authorization:`Bearer ${SKEY}`}}),
+    fetch(`${SURL}/rest/v1/lead_scraped_assets?lead_id=eq.${id}&limit=1`, {headers:{apikey:SKEY,Authorization:`Bearer ${SKEY}`}}).catch(()=>({json:async()=>[]})),
+  ]);
+
+  const [leads, demos, brands, assets] = await Promise.all([leadRes.json(), demoRes.json(), brandRes.json(), assetRes.json()]);
+  const lead = leads[0]; if(!lead){content.innerHTML='<div class="hq-empty">Lead not found</div>';return;}
+  const demo = demos[0]||null;
+  const brand = brands[0]||null;
+  const asset = assets[0]||null;
+
+  const niche = (lead.niche||'').toLowerCase();
+  const nicheIcon = niche==='plumbing'?'🔧':niche==='landscaping'?'🌿':'✨';
+  const city = `${lead.city||''}${lead.state?', '+lead.state:''}`;
+
+  // Timeline events
+  const tlEvents = [];
+  if(lead.created_at) tlEvents.push({dot:'blue',icon:'🔍',title:'Lead Discovered',sub:`Found via Google Maps — ${niche.replace(/_/g,' ')}`,time:lead.created_at});
+  if(lead.status!=='new'&&lead.updated_at&&lead.updated_at!==lead.created_at) tlEvents.push({dot:'yellow',icon:'🌾',title:'Website Scraped',sub:'Harvest collected brand assets and contact info',time:lead.updated_at});
+  if(brand?.created_at) tlEvents.push({dot:'blue',icon:'🎨',title:'Brand Profile Created',sub:`Prism synthesized brand — ${brand.tagline||'Profile complete'}`,time:brand.created_at});
+  if(demo?.created_at) tlEvents.push({dot:'green',icon:'🔨',title:'Demo Site Built',sub:`Forge deployed to ${demo.demo_url||'GitHub Pages'}`,time:demo.created_at});
+  if(['qa_passed','emailed','follow_up_1','follow_up_2','replied','won','lost'].includes(lead.status)) tlEvents.push({dot:'purple',icon:'📬',title:'Outreach Email Sent',sub:`Mercury sent personalized email${lead.contact_email?' to '+lead.contact_email:''}`,time:lead.updated_at||demo?.created_at});
+  if(lead.status==='replied') tlEvents.push({dot:'green',icon:'💬',title:'Lead Replied',sub:'Business owner responded to outreach',time:lead.updated_at});
+  if(lead.status==='won') tlEvents.push({dot:'green',icon:'🏆',title:'Customer Won',sub:'Signed up for $99/month subscription',time:lead.updated_at});
+  if(lead.status==='lost') tlEvents.push({dot:'gray',icon:'❌',title:'Lead Lost',sub:'No conversion',time:lead.updated_at});
+  tlEvents.sort((a,b)=>new Date(a.time)-new Date(b.time));
+
+  const tlHTML = tlEvents.map(e=>`
+    <div class="tl-item">
+      <div class="tl-dot ${e.dot}">${e.icon}</div>
+      <div class="tl-body">
+        <div class="tl-title">${e.title}</div>
+        <div class="tl-sub">${e.sub}</div>
+        <div class="tl-time">${fd(e.time)} · ${ta(e.time)}</div>
+      </div>
+    </div>`).join('');
+
+  const scoreVal = demo?.score||null;
+  const scoreColor = scoreVal>=90?'#22c55e':scoreVal>=70?'#f59e0b':'#ef4444';
+
+  content.innerHTML = `<div class="profile-wrap">
+    <button class="profile-back" onclick="hqNav('leads')">← Back to Leads</button>
+
+    <!-- HERO -->
+    <div class="profile-hero">
+      ${demo?.screenshot_url
+        ? `<img src="${demo.screenshot_url}" class="profile-hero-img" onclick="window.open('${demo.demo_url}','_blank')" title="Click to view demo">`
+        : `<div class="profile-hero-img-placeholder">${nicheIcon}</div>`}
+      <div class="profile-hero-body">
+        <div>
+          <div class="profile-biz-name">${lead.business_name||'Unknown Business'}</div>
+          <div class="profile-badges">${nbadge(lead.niche)} ${sbadge(lead.status)} ${lead.google_rating?`<span class="badge b-yellow">⭐ ${lead.google_rating} (${lead.review_count||0} reviews)</span>`:''}</div>
+          <div class="profile-meta">
+            ${city?`<span class="profile-meta-item">📍 ${city}</span>`:''}
+            ${lead.phone?`<span class="profile-meta-item">📞 ${lead.phone}</span>`:''}
+            ${lead.contact_email?`<span class="profile-meta-item">✉️ ${lead.contact_email}</span>`:'<span class="profile-meta-item" style="color:#ef4444">⚠️ No email on file</span>'}
+          </div>
+        </div>
+        <div class="profile-actions">
+          ${demo?.demo_url?`<a href="${demo.demo_url}" target="_blank" class="btn-profile btn-p-primary">🌐 View Demo</a>`:''}
+          ${lead.website_url?`<a href="${lead.website_url}" target="_blank" class="btn-profile btn-p-outline">↗ Their Site</a>`:''}
+          ${lead.google_business_url?`<a href="${lead.google_business_url}" target="_blank" class="btn-profile btn-p-outline">📍 Google</a>`:''}
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN GRID -->
+    <div class="profile-grid">
+      <!-- LEFT COL -->
+      <div style="display:flex;flex-direction:column;gap:16px">
+
+        <!-- DEMO CARD -->
+        ${demo ? `<div class="pcard">
+          <div class="pcard-hdr">🌐 Demo Website ${scoreVal?`<span class="badge b-${scoreVal>=90?'green':scoreVal>=70?'yellow':'red'}" style="margin-left:auto">Score: ${scoreVal}/100</span>`:''}</div>
+          <div class="pcard-body">
+            ${demo.screenshot_url?`<img src="${demo.screenshot_url}" class="demo-thumb-lg" onclick="window.open('${demo.demo_url}','_blank')">`:''}
+            <div class="demo-url-bar">
+              <span class="demo-url-text">${demo.demo_url}</span>
+              <a href="${demo.demo_url}" target="_blank" class="btn-profile btn-p-primary" style="padding:5px 12px;font-size:.72rem">Open →</a>
+            </div>
+            ${scoreVal?`<div style="margin-top:10px"><div style="display:flex;justify-content:space-between;font-size:.7rem;color:var(--text3);margin-bottom:4px"><span>QA Score</span><span style="color:${scoreColor};font-weight:700">${scoreVal}/100</span></div><div class="score-bar"><div class="score-fill" style="width:${scoreVal}%;background:${scoreColor}"></div></div></div>`:''}
+          </div>
+        </div>` : `<div class="pcard"><div class="pcard-hdr">🌐 Demo Website</div><div class="pcard-body"><div class="hq-empty" style="padding:24px">No demo built yet</div></div></div>`}
+
+        <!-- BUSINESS INFO -->
+        <div class="pcard">
+          <div class="pcard-hdr">📋 Business Information</div>
+          <div class="pcard-body">
+            <div class="pinfo-grid">
+              <div class="pinfo-item"><div class="pi-label">Business Name</div><div class="pi-val">${lead.business_name||'—'}</div></div>
+              <div class="pinfo-item"><div class="pi-label">Niche</div><div class="pi-val">${(lead.niche||'').replace(/_/g,' ')}</div></div>
+              <div class="pinfo-item"><div class="pi-label">City</div><div class="pi-val">${city||'—'}</div></div>
+              <div class="pinfo-item"><div class="pi-label">Phone</div><div class="pi-val">${lead.phone||'—'}</div></div>
+              <div class="pinfo-item"><div class="pi-label">Email</div><div class="pi-val">${lead.contact_email||'<span style="color:#ef4444">None found</span>'}</div></div>
+              <div class="pinfo-item"><div class="pi-label">Website</div><div class="pi-val">${lead.website_url?`<a href="${lead.website_url}" target="_blank">${lead.website_url.replace(/^https?:\/\//,'').substring(0,30)}</a>`:'—'}</div></div>
+              <div class="pinfo-item"><div class="pi-label">Google Rating</div><div class="pi-val">${lead.google_rating?'⭐ '+lead.google_rating:'—'}</div></div>
+              <div class="pinfo-item"><div class="pi-label">Reviews</div><div class="pi-val">${lead.review_count||'—'}</div></div>
+              <div class="pinfo-item"><div class="pi-label">Mobile Friendly</div><div class="pi-val">${lead.mobile_friendly===true?'✅ Yes':lead.mobile_friendly===false?'❌ No':'—'}</div></div>
+              <div class="pinfo-item"><div class="pi-label">Page Speed</div><div class="pi-val">${lead.page_speed_score?lead.page_speed_score+'/100':'—'}</div></div>
+              <div class="pinfo-item"><div class="pi-label">Status</div><div class="pi-val">${sbadge(lead.status)}</div></div>
+              <div class="pinfo-item"><div class="pi-label">Added</div><div class="pi-val">${fd(lead.created_at)}</div></div>
+            </div>
+            ${lead.notes?`<div style="margin-top:12px;padding:10px;background:var(--panel2);border-radius:6px;font-size:.75rem;color:var(--text2);line-height:1.6;font-family:'JetBrains Mono',monospace">${lead.notes}</div>`:''}
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT COL -->
+      <div style="display:flex;flex-direction:column;gap:16px">
+
+        <!-- ACTIVITY TIMELINE -->
+        <div class="pcard">
+          <div class="pcard-hdr">⏱ Activity Timeline</div>
+          <div class="pcard-body">
+            ${tlHTML||'<div class="hq-empty" style="padding:16px">No activity yet</div>'}
+          </div>
+        </div>
+
+        <!-- BRAND PROFILE -->
+        ${brand ? `<div class="pcard">
+          <div class="pcard-hdr">🎨 Brand Profile</div>
+          <div class="pcard-body">
+            <div class="pinfo-grid">
+              ${brand.primary_color?`<div class="pinfo-item"><div class="pi-label">Primary Color</div><div class="pi-val"><span class="brand-swatch" style="background:${brand.primary_color}"></span>${brand.primary_color}</div></div>`:''}
+              ${brand.secondary_color?`<div class="pinfo-item"><div class="pi-label">Secondary</div><div class="pi-val"><span class="brand-swatch" style="background:${brand.secondary_color}"></span>${brand.secondary_color}</div></div>`:''}
+              ${brand.font_family?`<div class="pinfo-item"><div class="pi-label">Font</div><div class="pi-val">${brand.font_family}</div></div>`:''}
+              ${brand.tone?`<div class="pinfo-item"><div class="pi-label">Tone</div><div class="pi-val">${brand.tone}</div></div>`:''}
+            </div>
+            ${brand.tagline?`<div style="margin-top:10px;padding:10px;background:var(--panel2);border-radius:6px;font-size:.8rem;color:var(--text);font-style:italic">"${brand.tagline}"</div>`:''}
+          </div>
+        </div>` : ''}
+
+        <!-- SCRAPED ASSETS -->
+        ${asset ? `<div class="pcard">
+          <div class="pcard-hdr">🌾 Scraped Assets</div>
+          <div class="pcard-body" style="display:flex;flex-direction:column;gap:10px">
+            ${asset.logo_url?`<div><div class="pi-label">Logo</div><img src="${asset.logo_url}" style="max-height:48px;max-width:160px;margin-top:4px;border-radius:4px"></div>`:''}
+            ${asset.hero_image_url?`<div><div class="pi-label">Hero Image</div><img src="${asset.hero_image_url}" style="width:100%;max-height:100px;object-fit:cover;border-radius:6px;margin-top:4px;border:1px solid var(--border-dark)"></div>`:''}
+            ${asset.tagline?`<div><div class="pi-label">Tagline</div><div class="pi-val" style="font-style:italic">"${asset.tagline}"</div></div>`:''}
+            ${asset.about_text?`<div><div class="pi-label">About Text</div><div style="font-size:.73rem;color:var(--text2);line-height:1.6;margin-top:4px">${asset.about_text.substring(0,200)}${asset.about_text.length>200?'...':''}</div></div>`:''}
+          </div>
+        </div>` : ''}
+
+      </div>
+    </div>
+
+    <!-- OUTREACH STATUS -->
+    <div class="full-width-pcard">
+      <div class="pcard-hdr">📬 Outreach & Communications</div>
+      <div class="pcard-body">
+        ${EMAILED_S.includes(lead.status) ? `
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:14px">
+            <div style="background:var(--panel2);border-radius:8px;padding:14px">
+              <div class="pi-label">Real Email</div>
+              <div class="pi-val" style="font-family:'JetBrains Mono',monospace;font-size:.78rem">${lead.contact_email||'Not on file'}</div>
+            </div>
+            <div style="background:var(--panel2);border-radius:8px;padding:14px">
+              <div class="pi-label">Sent To (Test)</div>
+              <div class="pi-val" style="font-family:'JetBrains Mono',monospace;font-size:.78rem">benson8708@gmail.com</div>
+            </div>
+            <div style="background:var(--panel2);border-radius:8px;padding:14px">
+              <div class="pi-label">Status</div>
+              <div class="pi-val">${sbadge(lead.status)}</div>
+            </div>
+            <div style="background:var(--panel2);border-radius:8px;padding:14px">
+              <div class="pi-label">Last Updated</div>
+              <div class="pi-val" style="font-size:.78rem">${fd(lead.updated_at)}</div>
+            </div>
+          </div>
+          <div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:8px;padding:12px;font-size:.75rem;color:var(--yellow)">
+            ⚠️ TEST MODE ACTIVE — All emails route to benson8708@gmail.com. Real outreach to ${lead.contact_email||'this lead'} begins March 15.
+          </div>
+        ` : `<div class="hq-empty" style="padding:20px">No outreach sent yet — lead is at <strong>${(lead.status||'').replace(/_/g,' ')}</strong> stage</div>`}
+      </div>
+    </div>
+  </div>`;
+}
+
 </script>
 </body>
 </html>
